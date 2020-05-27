@@ -4,6 +4,6 @@ USER root
 
 RUN $RESOURCES_PATH/tools/qgis.sh
 
-USER jovyan
+USER $NB_USER
 
 CMD ["/init.sh"]
