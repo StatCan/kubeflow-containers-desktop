@@ -1139,7 +1139,8 @@ RUN cp /usr/share/applications/firefox.desktop $HOME/Desktop/firefox.desktop && 
     chown jovyan:jovyan $HOME/Desktop/code.desktop
 
 # Workspace overwrite hotfix
-RUN cp -r /home/$NB_USER /home_nbuser_default
+RUN cp -r /home/$NB_USER /tmp/home_nbuser_default && \
+    chown -R $NB_USER /tmp/home_nbuser_default
 
 COPY init.sh /init.sh
 RUN chmod +x /init.sh
