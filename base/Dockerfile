@@ -31,7 +31,6 @@ RUN \
     mkdir /var/run/supervisord && \
     chown -R jovyan:jovyan /var/run/supervisord
 
-COPY resources/scripts/init.sh /
 COPY resources/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
 COPY resources/supervisor/programs /etc/supervisor/conf.d/
 # COPY resources/tools/ $RESOURCES_PATH/tools
@@ -1092,9 +1091,7 @@ LABEL \
 RUN \
     chmod -R 555 $RESOURCES_PATH/tools && \
     echo "jovyan ALL=(ALL) NOPASSWD: /resources/tools/, /usr/sbin/cron, /usr/sbin/netdata, /usr/sbin/rsyslogd, /usr/sbin/xrdp, /usr/sbin/sslh, /usr/sbin/sshd" >> /etc/sudoers.d/jovyan && \
-    printf "export ZSH=\"/home/jovyan/.oh-my-zsh\"\nZSH_THEME=\"avit\"\nDISABLE_AUTO_UPDATE=\"true\"\nZSH_AUTOSUGGEST_HIGHLIGHT_STYLE=\"fg=245\"\nplugins=(git k extract colorize pip npm zsh-256color supervisor command-not-found autojump colored-man-pages git-flow git-extras httpie python zsh-autosuggestions history-substring-search zsh-completions zsh-syntax-highlighting)\nsource \$ZSH/oh-my-zsh.sh\nLS_COLORS=\"\"\nexport LS_COLORS\n" > /home/jovyan/.zshrc && \
-    chmod +x /init.sh
-
+    printf "export ZSH=\"/home/jovyan/.oh-my-zsh\"\nZSH_THEME=\"avit\"\nDISABLE_AUTO_UPDATE=\"true\"\nZSH_AUTOSUGGEST_HIGHLIGHT_STYLE=\"fg=245\"\nplugins=(git k extract colorize pip npm zsh-256color supervisor command-not-found autojump colored-man-pages git-flow git-extras httpie python zsh-autosuggestions history-substring-search zsh-completions zsh-syntax-highlighting)\nsource \$ZSH/oh-my-zsh.sh\nLS_COLORS=\"\"\nexport LS_COLORS\n" > /home/jovyan/.zshrc
 # Misc. connection permissions
 RUN chown -R jovyan:jovyan $XDG_CACHE_HOME && \
     chown -R jovyan:jovyan /etc/nginx && \
@@ -1140,6 +1137,13 @@ RUN cp /usr/share/applications/firefox.desktop $HOME/Desktop/firefox.desktop && 
     update-alternatives --install /usr/bin/x-www-browser x-www-browser /usr/bin/firefox 100 && \
     cp /usr/share/applications/code.desktop $HOME/Desktop/code.desktop && \
     chown jovyan:jovyan $HOME/Desktop/code.desktop
+
+# Workspace overwrite hotfix
+RUN cp -r /home/$NB_USER /home_nbuser_default
+
+COPY init.sh /init.sh
+RUN chmod +x /init.sh
+
 
 # use global option with tini to kill full process groups: https://github.com/krallin/tini#process-group-killing
 ENTRYPOINT ["/tini", "-g", "--"]
