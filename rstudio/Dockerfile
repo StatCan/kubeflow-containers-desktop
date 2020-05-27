@@ -5,6 +5,6 @@ USER root
 RUN $RESOURCES_PATH/tools/r-runtime.sh && \
     $RESOURCES_PATH/tools/r-studio-desktop.sh 
 
-USER jovyan
+USER $NB_USER
 
 CMD ["/init.sh"]
