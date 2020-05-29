@@ -21,6 +21,9 @@ log.info("Start Workspace")
 
 ENV_RESOURCES_PATH = os.getenv("RESOURCES_PATH", "/resources")
 
+# Get NB_USER ENV for supervisord
+ENV_NB_USER = os.getenv("NB_USER", "jovyan")
+
 # Include tutorials 
 WORKSPACE_HOME = os.getenv('WORKSPACE_HOME', "/workspace")
 INCLUDE_TUTORIALS = os.getenv('INCLUDE_TUTORIALS', "true")

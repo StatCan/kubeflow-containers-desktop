@@ -3,23 +3,40 @@ FROM ubuntu:18.04
 USER root
 
 ### BASICS ###
-# Technical Environment Variables
-ENV \
-    SHELL="/bin/bash" \
-    HOME="/home/jovyan"  \
-    # Nobteook server user: https://github.com/jupyter/docker-stacks/blob/master/base-notebook/Dockerfile#L33
-    NB_USER="jovyan" \
-    USER_GID=1000 \
-    XDG_CACHE_HOME="/home/jovyan/.cache/" \
-    XDG_RUNTIME_DIR="/tmp" \
-    DISPLAY=":1" \
-    TERM="xterm" \
-    DEBIAN_FRONTEND="noninteractive" \
-    RESOURCES_PATH="/resources" \
-    SSL_RESOURCES_PATH="/resources/ssl" \
-    WORKSPACE_HOME="/workspace"
 
-RUN groupadd -g 1000 jovyan && useradd -m -u 1000 -g jovyan jovyan
+# Environment Variables
+
+ENV AUTHENTICATE_VIA_JUPYTER="false" \
+    CONFIG_BACKUP_ENABLED="true" \
+    DATA_ENVIRONMENT=$WORKSPACE_HOME"/environment" \
+    DEBIAN_FRONTEND="noninteractive" \
+    DISPLAY=":1" \
+    INCLUDE_TUTORIALS="true" \
+    LANG="en_US.UTF-8" \
+    LANGUAGE="en_US:en" \
+    LC_ALL="en_US.UTF-8" \
+    MAX_NUM_THREADS="auto" \
+    NB_USER="jovyan" \
+    RESOURCES_PATH="/resources" \
+    SHARED_LINKS_ENABLED="true" \
+    SHELL="/bin/bash" \
+    SHELL="/usr/bin/bash" \
+    SHUTDOWN_INACTIVE_KERNELS="false" \
+    SSL_RESOURCES_PATH="/resources/ssl" \
+    TERM="xterm" \
+    USER_GID=1000 \
+    VNC_COL_DEPTH=24 \
+    VNC_PW=vncpassword \
+    VNC_RESOLUTION=1600x900 \
+    WORKSPACE_BASE_URL="/" \
+    WORKSPACE_HOME="/workspace" \
+    WORKSPACE_PORT="8888" \
+    XDG_RUNTIME_DIR="/tmp"
+
+ENV HOME="/home/${NB_USER}"  \
+    XDG_CACHE_HOME="/home/${NB_USER}/.cache/"
+
+RUN groupadd -g ${USER_GID} ${NB_USER} && useradd -m -u ${USER_GID} -g ${NB_USER} ${NB_USER}
 
 WORKDIR $HOME
 
@@ -29,7 +46,7 @@ RUN \
     mkdir $WORKSPACE_HOME && chmod a+rwx $WORKSPACE_HOME && \
     mkdir $SSL_RESOURCES_PATH && chmod a+rwx $SSL_RESOURCES_PATH && \
     mkdir /var/run/supervisord && \
-    chown -R jovyan:jovyan /var/run/supervisord
+    chown -R ${NB_USER}:${NB_USER} /var/run/supervisord
 
 COPY resources/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
 COPY resources/supervisor/programs /etc/supervisor/conf.d/
@@ -56,10 +73,6 @@ RUN \
     update-locale LANG=en_US.UTF-8 && \
     # Cleanup
     clean-layer.sh
-
-ENV LC_ALL="en_US.UTF-8" \
-    LANG="en_US.UTF-8" \
-    LANGUAGE="en_US:en"
 
 # Install basics
 RUN \
@@ -207,7 +220,7 @@ RUN \
     mkdir -p $HOME/.ssh/ && \
     # create empty config file if not exists
     touch $HOME/.ssh/config  && \
-    sudo chown -R $NB_USER:users $HOME/.ssh && \
+    sudo chown -R ${NB_USER}:users $HOME/.ssh && \
     chmod 700 $HOME/.ssh && \
     printenv >> $HOME/.ssh/environment && \
     chmod -R a+rwx /usr/local/bin/ && \
@@ -254,10 +267,10 @@ COPY resources/nginx/lua-extensions /etc/nginx/nginx_plugins
 ENV \
     CONDA_DIR=/opt/conda \
     PYTHON_VERSION="3.7.6" \
-    CONDA_PYTHON_DIR=/opt/conda/lib/python3.7
+    CONDA_PYTHON_DIR=/opt/conda/lib/python3.7 \
+    CONDA_VERSION="4.7.12"
 
-RUN CONDA_VERSION="4.7.12" && \
-    wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O ~/miniconda.sh && \
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -b -p $CONDA_DIR && \
     export PATH=$CONDA_DIR/bin:$PATH && \
     rm ~/miniconda.sh && \
@@ -771,7 +784,7 @@ RUN \
     # TODO do not activate for now, opening the bash shell is a bit slow
     # conda init bash && \
     conda init zsh && \
-    chsh -s $(which zsh) $NB_USER && \
+    chsh -s $(which zsh) ${NB_USER} && \
     # Install sdkman - needs to be executed after zsh
     curl -s https://get.sdkman.io | bash && \
     # Cleanup
@@ -905,12 +918,6 @@ RUN \
     # Needs to be run after patching
     ln -s $RESOURCES_PATH/novnc/vnc.html $RESOURCES_PATH/novnc/index.html
 
-# Basic VNC Settings - no password
-ENV \
-    VNC_PW=vncpassword \
-    VNC_RESOLUTION=1600x900 \
-    VNC_COL_DEPTH=24
-
 # Configure Jupyter / JupyterLab
 # Add as jupyter system configuration
 COPY resources/jupyter/nbconfig /etc/jupyter/nbconfig
@@ -1005,10 +1012,10 @@ RUN \
 # http://astroa.physics.metu.edu.tr/MANUALS/intel_ifc/mergedProjects/optaps_for/common/optaps_par_var.htm
 # https://www.tensorflow.org/guide/performance/overview#tuning_mkl_for_the_best_performance
 # https://software.intel.com/en-us/articles/maximize-tensorflow-performance-on-cpu-considerations-and-recommendations-for-inference
-ENV KMP_DUPLICATE_LIB_OK="True" \
-    # Control how to bind OpenMP* threads to physical processing units # verbose
-    KMP_AFFINITY="granularity=fine,compact,1,0" \
-    KMP_BLOCKTIME=0
+# ENV KMP_DUPLICATE_LIB_OK="True" \
+#     # Control how to bind OpenMP* threads to physical processing units # verbose
+#     KMP_AFFINITY="granularity=fine,compact,1,0" \
+#     KMP_BLOCKTIME=0
     # KMP_BLOCKTIME="1" -> is not faster in my tests
     # TensorFlow uses less than half the RAM with tcmalloc relative to the default. - requires google-perftools
     # Too many issues: LD_PRELOAD="/usr/lib/libtcmalloc.so.4" \
@@ -1019,24 +1026,7 @@ ENV KMP_DUPLICATE_LIB_OK="True" \
     # MXNET_SUBGRAPH_BACKEND=MKLDNN
 
 # Set default values for environment variables
-ENV CONFIG_BACKUP_ENABLED="true" \
-    SHUTDOWN_INACTIVE_KERNELS="false" \
-    SHARED_LINKS_ENABLED="true" \
-    AUTHENTICATE_VIA_JUPYTER="false" \
-    DATA_ENVIRONMENT=$WORKSPACE_HOME"/environment" \
-    WORKSPACE_BASE_URL="/" \
-    INCLUDE_TUTORIALS="true" \
-    # Main port used for sshl proxy -> can be changed
-    WORKSPACE_PORT="8888" \
-    # Set zsh as default shell (e.g. in jupyter)
-    SHELL="/usr/bin/zsh" \
-    # Fix dark blue color for ls command (unreadable): 
-    # https://askubuntu.com/questions/466198/how-do-i-change-the-color-for-directories-with-ls-in-the-console
-    # USE default LS_COLORS - Dont set LS COLORS - overwritten in zshrc
-    # LS_COLORS="" \
-    # set number of threads various programs should use, if not-set, it tries to use all
-    # this can be problematic since docker restricts CPUs by stil showing all
-    MAX_NUM_THREADS="auto"
+
 
 ### END CONFIGURATION ### 
 ARG ARG_BUILD_DATE="unknown"
@@ -1090,15 +1080,15 @@ LABEL \
 
 RUN \
     chmod -R 555 $RESOURCES_PATH/tools && \
-    echo "jovyan ALL=(ALL) NOPASSWD: /resources/tools/, /usr/sbin/cron, /usr/sbin/netdata, /usr/sbin/rsyslogd, /usr/sbin/xrdp, /usr/sbin/sslh, /usr/sbin/sshd" >> /etc/sudoers.d/jovyan && \
-    printf "export ZSH=\"/home/jovyan/.oh-my-zsh\"\nZSH_THEME=\"avit\"\nDISABLE_AUTO_UPDATE=\"true\"\nZSH_AUTOSUGGEST_HIGHLIGHT_STYLE=\"fg=245\"\nplugins=(git k extract colorize pip npm zsh-256color supervisor command-not-found autojump colored-man-pages git-flow git-extras httpie python zsh-autosuggestions history-substring-search zsh-completions zsh-syntax-highlighting)\nsource \$ZSH/oh-my-zsh.sh\nLS_COLORS=\"\"\nexport LS_COLORS\n" > /home/jovyan/.zshrc
+    echo "${NB_USER} ALL=(ALL) NOPASSWD: /resources/tools/, /usr/sbin/cron, /usr/sbin/netdata, /usr/sbin/rsyslogd, /usr/sbin/xrdp, /usr/sbin/sslh, /usr/sbin/sshd" >> /etc/sudoers.d/${NB_USER} && \
+    printf "export ZSH=\"/home/${NB_USER}/.oh-my-zsh\"\nZSH_THEME=\"avit\"\nDISABLE_AUTO_UPDATE=\"true\"\nZSH_AUTOSUGGEST_HIGHLIGHT_STYLE=\"fg=245\"\nplugins=(git k extract colorize pip npm zsh-256color supervisor command-not-found autojump colored-man-pages git-flow git-extras httpie python zsh-autosuggestions history-substring-search zsh-completions zsh-syntax-highlighting)\nsource \$ZSH/oh-my-zsh.sh\nLS_COLORS=\"\"\nexport LS_COLORS\n" > /home/${NB_USER}/.zshrc
 # Misc. connection permissions
-RUN chown -R jovyan:jovyan $XDG_CACHE_HOME && \
-    chown -R jovyan:jovyan /etc/nginx && \
-    chown -R jovyan:jovyan /etc/supervisor && \
-    chown -R jovyan:jovyan /var/log/supervisor/ && \
-    chown -R jovyan:jovyan /var/log/nginx && \
-    chown -R jovyan:jovyan /usr/local/openresty/nginx
+RUN chown -R ${NB_USER}:${NB_USER} $XDG_CACHE_HOME && \
+    chown -R ${NB_USER}:${NB_USER} /etc/nginx && \
+    chown -R ${NB_USER}:${NB_USER} /etc/supervisor && \
+    chown -R ${NB_USER}:${NB_USER} /var/log/supervisor/ && \
+    chown -R ${NB_USER}:${NB_USER} /var/log/nginx && \
+    chown -R ${NB_USER}:${NB_USER} /usr/local/openresty/nginx
 
 # RUN \
 #     $RESOURCES_PATH/tools/r-runtime.sh && \
@@ -1133,23 +1123,22 @@ RUN mv $HOME/.config $HOME/.config2 && \
 
 # Desktop icons, firefox default
 RUN cp /usr/share/applications/firefox.desktop $HOME/Desktop/firefox.desktop && \
-    chown jovyan:jovyan $HOME/Desktop/firefox.desktop && \
+    chown ${NB_USER}:${NB_USER} $HOME/Desktop/firefox.desktop && \
     update-alternatives --install /usr/bin/x-www-browser x-www-browser /usr/bin/firefox 100 && \
     cp /usr/share/applications/code.desktop $HOME/Desktop/code.desktop && \
-    chown jovyan:jovyan $HOME/Desktop/code.desktop
+    chown ${NB_USER}:${NB_USER} $HOME/Desktop/code.desktop
 
 # Workspace overwrite hotfix
-RUN cp -r /home/$NB_USER /tmp/home_nbuser_default && \
-    chown -R $NB_USER /tmp/home_nbuser_default
+RUN cp -r /home/${NB_USER} /tmp/home_nbuser_default && \
+    chown -R ${NB_USER} /tmp/home_nbuser_default
 
 COPY init.sh /init.sh
 RUN chmod +x /init.sh
 
-
 # use global option with tini to kill full process groups: https://github.com/krallin/tini#process-group-killing
 ENTRYPOINT ["/tini", "-g", "--"]
 
-USER jovyan
+USER ${NB_USER}
 
 EXPOSE 8888
 

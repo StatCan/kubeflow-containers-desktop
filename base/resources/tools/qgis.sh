@@ -20,9 +20,9 @@ if ! hash qgis 2>/dev/null; then
 	Icon=qgis
 	Path=
 	Terminal=false
-	StartupNotify=false" >> "/home/jovyan/Desktop/QGIS Desktop.desktop"
+	StartupNotify=false" >> "/home/${NB_USER}/Desktop/QGIS Desktop.desktop"
 
-	chmod +x "/home/jovyan/Desktop/QGIS Desktop.desktop"
+	chmod +x "/home/${NB_USER}/Desktop/QGIS Desktop.desktop"
 else
     echo "QGIS is already installed"
 fi
@@ -62,8 +62,8 @@ conda install --override-channels -c conda-forge --yes \
       'r-spdep'
 
 conda clean --all -f -y
-export USER_GID=1000
-fix-permissions.sh $CONDA_DIR
-fix-permissions.sh /home/jovyan
+export USER_GID=${USER_GID}
+fix-permissions.sh ${CONDA_DIR}
+fix-permissions.sh /home/${NB_USER}
 
 echo "QGIS and supporting libraries have been installed."
