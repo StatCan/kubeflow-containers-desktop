@@ -21,32 +21,3 @@ sortedcontainers==2.1.0 # Sorted Containers -- Sorted List, Sorted Dict, Sorted 
 simplejson==3.17.0 # Simple, fast, extensible JSON encoder/decoder for Python
 mock==3.0.5 # Rolling backport of unittest.mock for all Pythons
 python-dateutil==2.8.1 # 2.8.0 required by botocore: Extensions to the standard Python datetime module
-
-# ML libraries
-# tensorboard==2.0.0 # TensorBoard lets you watch Tensors Flow
-
-## Glances
-# psutil==5.6.7 # Cross-platform lib for process and system monitoring in Python.
-# bottle==0.12.18 # Fast and simple WSGI-framework for small web-applications.
-# netifaces==0.10.9 # Portable network interface information.
-# py-cpuinfo==5.0.0 # Get CPU info with pure Python 2 & 3
-# glances==3.1.3 # A cross-platform curses-based monitoring tool
-# pymdstat==0.4.2 # Python library to parse Linux /proc/mdstat
-
-## Jupyter
-# jupytext==1.3.2 # Jupyter notebooks as Markdown documents, Julia, Python or R scripts
-# nbresuse==0.3.3 # Simple Jupyter extension to show how much resources (RAM) your notebook is using
-# ipympl==0.4.1 # Matplotlib Jupyter Extension
-# jupyterhub==1.1.0 # JupyterHub: A multi-user server for Jupyter notebooks
-# remote_ikernel==0.4.6 # Running IPython kernels through batch queues
-# jupyter_contrib_nbextensions==0.5.1 # A collection of Jupyter nbextensions.
-# jupyter_nbextensions_configurator==0.4.1 # jupyter serverextension providing configuration interfaces for nbextensions.
-# jupyter-tensorboard==0.1.10 # Jupyter notebook integration for tensorboard.
-# git+https://github.com/cloudrainstar/jupyter_tensorboard.git # Use other version with support for tensorflow 2.X
-# nbdime==1.1.0 # Diff and merge of Jupyter Notebooks
-
-## Need these to build?:
-# qgrid==1.2.0
-# jupyter_http_over_ws==0.0.7
-ipyparallel==6.2.4
-jupyter-server-proxy==1.2.0
