@@ -3,15 +3,15 @@
 set -e
 
 if ! hash qgis 2>/dev/null; then
-    sh -c 'echo "deb http://qgis.org/debian bionic main" >> /etc/apt/sources.list'  
+  sh -c 'echo "deb http://qgis.org/debian bionic main" >> /etc/apt/sources.list'  
 	sh -c 'echo "deb-src http://qgis.org/debian bionic main " >> /etc/apt/sources.list'  
 	wget -O - https://qgis.org/downloads/qgis-2019.gpg.key | gpg --import
 	gpg --fingerprint 51F523511C7028C3
 	gpg --export --armor 51F523511C7028C3 | apt-key add -
 	apt-get update
-    LD_LIBRARY_PATH="" LD_PRELOAD="" apt-get install --yes qgis python-qgis
+  LD_LIBRARY_PATH="" LD_PRELOAD="" apt-get install --yes qgis python-qgis
 
-    echo "[Desktop Entry]
+  echo "[Desktop Entry]
 	Version=1.0
 	Type=Application
 	Name=QGIS Desktop
@@ -20,9 +20,11 @@ if ! hash qgis 2>/dev/null; then
 	Icon=qgis
 	Path=
 	Terminal=false
-	StartupNotify=false" >> "/home/${NB_USER}/Desktop/QGIS Desktop.desktop"
+	StartupNotify=false" >> "/tmp/home_nbuser_default/Desktop/QGIS Desktop.desktop"
 
-	chmod +x "/home/${NB_USER}/Desktop/QGIS Desktop.desktop"
+  chmod +x "/tmp/home_nbuser_default/Desktop/QGIS Desktop.desktop"
+  chown ${NB_USER}:${NB_USER} /tmp/home_nbuser_default/Desktop/RStudio.desktop
+
 else
     echo "QGIS is already installed"
 fi
@@ -61,9 +63,11 @@ conda install --override-channels -c conda-forge --yes \
       'r-spatstat' \
       'r-spdep'
 
+#Fix R
+conda install -c conda-forge libiconv
+
 conda clean --all -f -y
 export USER_GID=${USER_GID}
 fix-permissions.sh ${CONDA_DIR}
-fix-permissions.sh /home/${NB_USER}
 
 echo "QGIS and supporting libraries have been installed."

@@ -1115,7 +1115,8 @@ RUN \
 # Port 8090 is the Jupyter Notebook Server
 # See supervisor.conf for more ports
 
-# Hotfix to connect to GUI 
+# Hotfix to connect to GUI
+# Note: This still seems to be required with the Workspace overwrite hotfix
 RUN mv $HOME/.config $HOME/.config2 && \
     mv $HOME/.config2 $HOME/.config && \
     fix-permissions.sh $HOME && \

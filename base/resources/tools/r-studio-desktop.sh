@@ -22,19 +22,11 @@ Exec=/usr/lib/rstudio/bin/rstudio %F
 Icon=rstudio
 Path=
 Terminal=false
-StartupNotify=false" >> "/home/${NB_USER}/Desktop/RStudio.desktop"
+StartupNotify=false" >> "/tmp/home_nbuser_default/Desktop/RStudio.desktop"
 
-	chmod +x "/home/${NB_USER}/Desktop/RStudio.desktop"
-	chown ${NB_USER}:${NB_USER} /home/${NB_USER}/Desktop/RStudio.desktop   
+	chmod +x "/tmp/home_nbuser_default/Desktop/RStudio.desktop"
+	chown ${NB_USER}:${NB_USER} /tmp/home_nbuser_default/Desktop/RStudio.desktop   
 
 else
     echo "RStudio is already installed"
 fi
-
-# Fix tmp permission - are changed by rstudio start -> problem
-nohup sleep 4 && chown ${NB_USER}:${NB_USER} /tmp && chmod a+rwx /tmp &
-
-# Fix tmp permission 
-sleep 5
-chown ${NB_USER}:${NB_USER} /tmp
-chmod a+rwx /tmp
