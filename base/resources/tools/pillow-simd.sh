@@ -21,8 +21,8 @@ conda install -y --no-deps jpeg libtiff
 
 conda clean --all -f -y
 export USER_GID=1000
-fix-permissions.sh $CONDA_DIR
-fix-permissions.sh /home/jovyan
+fix-permissions.sh ${CONDA_DIR}
+fix-permissions.sh /home/${NB_USER}
 
 echo "This should return a version with post prefix if pillow-simd is used:"
 python -c "from PIL import Image; print(Image.__version__)"
