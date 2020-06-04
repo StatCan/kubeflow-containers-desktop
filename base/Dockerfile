@@ -487,10 +487,6 @@ RUN \
 
 ### DATA SCIENCE BASICS ###
 
-## Python 3
-# Data science libraries requirements
-COPY resources/libraries ${RESOURCES_PATH}/libraries
-
 ### Install main data science libs
 RUN \ 
     # Link Conda - All python are linke to the conda instances 
