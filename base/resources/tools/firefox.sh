@@ -3,6 +3,7 @@
 # Stops script execution if a command has an error
 set -e
 
+SHA256=6f15dc7b7de081a4f11ffa24d6ad6cd1877131941ff762d14cb3b0faf4291867
 
 function disableUpdate() {
     ff_def="$1/browser/defaults/profile"
@@ -31,8 +32,11 @@ function instFF() {
             mkdir -p "$FF_INST"
             FF_URL=http://releases.mozilla.org/pub/firefox/releases/$FF_VERS/linux-x86_64/en-US/firefox-$FF_VERS.tar.bz2
             echo "FF_URL: $FF_URL"
-            wget -qO- $FF_URL | tar xvj --strip 1 -C $FF_INST/
+            wget --quiet $FF_URL -O /tmp/firefox.tar.bz2
+            echo "${SHA256} /tmp/firefox.tar.bz2" | sha256sum -c -
+            tar xvjf /tmp/firefox.tar.bz2 --strip=1 -C $FF_INST/
             ln -s "$FF_INST/firefox" /usr/bin/firefox
+            rm /tmp/firefox.tar.bz2
             # Create desktop icon
             printf "[Desktop Entry]\nVersion=1.0\nEncoding=UTF-8\nName=Firefox Web Browser\nComment=Webbrowser\nExec=firefox\nTerminal=false\nX-MultipleArgs=false\nType=Application\nIcon=/usr/lib/firefox/browser/chrome/icons/default/default128.png\nCategories=GNOME;GTK;Network;WebBrowser;\nStartupNotify=true;" > /usr/share/applications/firefox.desktop
             # MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;video/webm;application/x-xpinstall;
@@ -46,7 +50,7 @@ function instFF() {
 
 if ! hash firefox 2>/dev/null; then
     echo "Installing Firefox. Please wait..."
-    instFF '68.8.0esr' '/usr/lib/firefox'
+    instFF '68.9.0esr' '/usr/lib/firefox'
 else
     echo "Firefox is already installed"
 fi
