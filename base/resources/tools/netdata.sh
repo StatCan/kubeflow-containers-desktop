@@ -3,6 +3,8 @@
 # Stops script execution if a command has an error
 set -e
 
+SHA256=82ddfedc8eb176f0220ba7435153d095d55df6d98a40f61b19fab1cd0139e594
+
 INSTALL_ONLY=0
 PORT=""
 # Loop through arguments and process them: https://pretzelhands.com/posts/command-line-flags
@@ -19,6 +21,7 @@ if [ ! -f "/usr/sbin/netdata"  ]; then
     cd $RESOURCES_PATH
     apt-get update
     wget https://my-netdata.io/kickstart.sh -O $RESOURCES_PATH/netdata-install.sh
+    echo "${SHA256} ${RESOURCES_PATH}/netdata-install.sh" | sha256sum -c -
     # Surpress output - if there is a problem remove to see logs > /dev/null
     /bin/bash $RESOURCES_PATH/netdata-install.sh --dont-wait --dont-start-it --stable-channel --disable-telemetry > /dev/null
     rm $RESOURCES_PATH/netdata-install.sh

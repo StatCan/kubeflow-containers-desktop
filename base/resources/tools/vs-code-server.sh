@@ -3,6 +3,8 @@
 # Stops script execution if a command has an error
 set -e
 
+SHA256=545cb89dc9583a97af5db2988303e47676b8eb2b70fc9ad0292d5b298f24f02e
+
 if [ ! -f "/usr/local/bin/code-server"  ]; then
     echo "Installing VS Code Server. Please wait..."
     cd ${RESOURCES_PATH}
@@ -12,6 +14,7 @@ if [ ! -f "/usr/local/bin/code-server"  ]; then
     # Use older version, since newer has some problems with python extension
     VS_CODE_VERSION=2.1692-vsc1.39.2
     wget -q https://github.com/cdr/code-server/releases/download/$VS_CODE_VERSION/code-server$VS_CODE_VERSION-linux-x86_64.tar.gz -O ./vscode-web.tar.gz
+    echo "${SHA256} ./vscode-web.tar.gz" | sha256sum -c -
     tar xfz ./vscode-web.tar.gz
     mv ./code-server$VS_CODE_VERSION-linux-x86_64/code-server /usr/local/bin
     chmod -R a+rwx /usr/local/bin/code-server

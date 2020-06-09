@@ -42,14 +42,13 @@ WORKDIR $HOME
 # Make folders
 RUN \
     mkdir $RESOURCES_PATH && chmod a+rwx $RESOURCES_PATH && \
-    # mkdir $WORKSPACE_HOME && chmod a+rwx $WORKSPACE_HOME && \
     mkdir $SSL_RESOURCES_PATH && chmod a+rwx $SSL_RESOURCES_PATH && \
     mkdir /var/run/supervisord && \
     chown -R ${NB_USER}:${NB_USER} /var/run/supervisord
 
 COPY resources/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
 COPY resources/supervisor/programs /etc/supervisor/conf.d/
-# COPY resources/tools/ $RESOURCES_PATH/tools
+COPY resources/tools $RESOURCES_PATH/tools
 
 # Layer cleanup script
 COPY resources/scripts/clean-layer.sh  /usr/bin/clean-layer.sh
@@ -193,7 +192,9 @@ RUN \
     clean-layer.sh
 
 # Add tini
+ARG SHA256=12d20136605531b09a2c2dac02ccee85e1b874eb322ef6baf7561cd93f93c855
 RUN wget --quiet https://github.com/krallin/tini/releases/download/v0.18.0/tini -O /tini && \
+    echo "${SHA256} /tini" | sha256sum -c - && \
     chmod +x /tini
 
 # prepare ssh for inter-container communication for remote python kernel
@@ -220,6 +221,7 @@ RUN \
     # Cleanup
     clean-layer.sh
 
+ARG SHA256=436b4e84d547a97a18cf7a2522daf819da8087b188468946b5a89c0dd1ca5d16
 RUN \
     OPEN_RESTY_VERSION="1.15.8.2" && \
     mkdir $RESOURCES_PATH"/openresty" && \
@@ -230,6 +232,7 @@ RUN \
     # Install apache2-utils to generate user:password file for nginx.
     apt-get install -y libssl-dev libpcre3 libpcre3-dev apache2-utils && \
     wget --quiet https://openresty.org/download/openresty-$OPEN_RESTY_VERSION.tar.gz  -O ./openresty.tar.gz && \
+    echo "${SHA256} ./openresty.tar.gz" | sha256sum -c - && \
     tar xfz ./openresty.tar.gz && \
     rm ./openresty.tar.gz && \
     cd ./openresty-$OPEN_RESTY_VERSION/ && \
@@ -260,8 +263,9 @@ ENV \
     PYTHON_VERSION="3.7.6" \
     CONDA_PYTHON_DIR=/opt/conda/lib/python3.7 \
     CONDA_VERSION="4.7.12"
-
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O ~/miniconda.sh && \
+ARG SHA256=a23fcffe97690d3bbcd34cda798c3a3318e0f35d863c5d4aca3fc983fe8450b7
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O ${HOME}/miniconda.sh && \
+    echo "${SHA256} ${HOME}/miniconda.sh" | sha256sum -c - && \
     /bin/bash ~/miniconda.sh -b -p $CONDA_DIR && \
     export PATH=$CONDA_DIR/bin:$PATH && \
     rm ~/miniconda.sh && \
@@ -295,35 +299,29 @@ ENV PATH=$CONDA_DIR/bin:$PATH
 ENV LD_LIBRARY_PATH=$CONDA_DIR/lib 
 
 # Install node.js
+ARG VERSION=v12.18.0
+ARG DISTRO=linux-x64
+ARG SHA256=2febc2506c298048bfddf896056be6191c1f08716876d960a4990bd63a7fe05a
 RUN \
-    apt-get update && \
-    # https://nodejs.org/en/about/releases/ use even numbered releases
-    curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - && \
-    apt-get install -y nodejs && \
-    # As conda is first in path, the commands 'node' and 'npm' reference to the version of conda. 
-    # Replace those versions with the newly installed versions of node
-    rm -f /opt/conda/bin/node && ln -s /usr/bin/node /opt/conda/bin/node && \
-    rm -f /opt/conda/bin/npm && ln -s /usr/bin/npm /opt/conda/bin/npm && \
-    # Fix permissions
-    chmod a+rwx /usr/bin/node && \
-    chmod a+rwx /usr/bin/npm && \
-    # Fix node versions - put into own dir and before conda:
-    mkdir -p /opt/node/bin && \
-    ln -s /usr/bin/node /opt/node/bin/node && \
-    ln -s /usr/bin/npm /opt/node/bin/npm && \
+    wget --quiet https://nodejs.org/dist/${VERSION}/node-${VERSION}-${DISTRO}.tar.xz -O /tmp/nodejs.tar.xz && \
+    echo "${SHA256} /tmp/nodejs.tar.xz" | sha256sum -c - && \
+    mkdir -p /usr/local/lib/nodejs && \
+    tar -xJvf /tmp/nodejs.tar.xz -C /usr/local/lib/nodejs && \
+    rm  /tmp/nodejs.tar.xz && \
+    export PATH=/usr/local/lib/nodejs/node-$VERSION-$DISTRO/bin:$PATH && \
     # Install YARN
-    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - && \
+    cat $RESOURCES_PATH/tools/yarn_pubkey.gpg | sudo apt-key add - && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends yarn && \
     # Install typescript 
-    /usr/bin/npm install -g typescript && \
+    /usr/local/lib/nodejs/node-$VERSION-$DISTRO/bin/npm install -g typescript && \
     # Install webpack - 32 MB
-    /usr/bin/npm install -g webpack && \
+    /usr/local/lib/nodejs/node-$VERSION-$DISTRO/bin/npm install -g webpack
     # Cleanup
-    clean-layer.sh
+    #clean-layer.sh
 
-ENV PATH=/opt/node/bin:$PATH
+ENV PATH=/usr/local/lib/nodejs/node-$VERSION-$DISTRO/bin:$PATH
 
 ### END RUNTIMES ###
 
@@ -366,26 +364,31 @@ RUN \
 
 ### GUI TOOLS ###
 # Install VNC
+ARG SHA256tigervnc=fb8f94a5a1d77de95ec8fccac26cb9eaa9f9446c664734c68efdffa577f96a31
+ARG SHA256novnc=2c63418b624a221a28cac7b9a7efecc092b695fc1b7dd88255b074ab32bc72a7
+ARG SHA256websockify=6ebfec791dd78be6584fb5fe3bc27f02af54501beddf8457368699f571de13ae
 RUN \
-    apt-get update  && \
-    # required for websockify
-    # apt-get install -y python-numpy  && \
     cd ${RESOURCES_PATH} && \
     # Tiger VNC
-    wget -qO- https://dl.bintray.com/tigervnc/stable/tigervnc-1.10.1.x86_64.tar.gz | tar xz --strip 1 -C / && \
+    wget --quiet https://dl.bintray.com/tigervnc/stable/tigervnc-1.10.1.x86_64.tar.gz -O /tmp/tigervnc.tar.gz && \
+    echo "${SHA256tigervnc} /tmp/tigervnc.tar.gz" | sha256sum -c - && \
+    tar xzf /tmp/tigervnc.tar.gz --strip 1 -C / && \
+    rm /tmp/tigervnc.tar.gz && \
     # Install websockify
     mkdir -p ./novnc/utils/websockify && \
     # Before updating the noVNC version, we need to make sure that our monkey patching scripts still work!!
-    wget -qO- https://github.com/novnc/noVNC/archive/v1.1.0.tar.gz | tar xz --strip 1 -C ./novnc && \
+    wget --quiet https://github.com/novnc/noVNC/archive/v1.1.0.tar.gz -O /tmp/novnc.tar.gz && \
+    echo "${SHA256novnc} /tmp/novnc.tar.gz" | sha256sum -c - && \
+    tar xzf /tmp/novnc.tar.gz --strip 1 -C ./novnc && \
+    rm /tmp/novnc.tar.gz && \
     # use older version of websockify to prevent hanging connections on offline containers?, see https://github.com/ConSol/docker-headless-vnc-container/issues/50
-    wget -qO- https://github.com/novnc/websockify/archive/v0.9.0.tar.gz | tar xz --strip 1 -C ./novnc/utils/websockify && \
+    wget --quiet https://github.com/novnc/websockify/archive/v0.9.0.tar.gz -O /tmp/websockify.tar.gz && \
+    echo "${SHA256websockify} /tmp/websockify.tar.gz" | sha256sum -c - && \
+    tar xzf /tmp/websockify.tar.gz --strip 1 -C ./novnc/utils/websockify && \
+    rm /tmp/websockify.tar.gz && \
     chmod +x -v ./novnc/utils/*.sh && \
     # create user vnc directory
-    mkdir -p $HOME/.vnc && \
-    # Fix permissions
-    fix-permissions.sh ${RESOURCES_PATH} && \
-    # Cleanup
-    clean-layer.sh
+    mkdir -p $HOME/.vnc
 
 # Install Terminal / GDebi (Package Manager) / Glogg (Stream file viewer) & archive tools
 # Discover Tools:
@@ -445,14 +448,12 @@ ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:$CONDA_DIR/l
 # Install Web Tools - Offered via Jupyter Tooling Plugin
 
 ## VS Code Server: https://github.com/codercom/code-server
-COPY resources/tools/vs-code-server.sh $RESOURCES_PATH/tools/vs-code-server.sh
 RUN \
     /bin/bash $RESOURCES_PATH/tools/vs-code-server.sh --install && \
     # Cleanup
     clean-layer.sh
 
 ## netdata
-COPY resources/tools/netdata.sh $RESOURCES_PATH/tools/netdata.sh
 RUN \
     /bin/bash $RESOURCES_PATH/tools/netdata.sh --install && \
     # Cleanup
@@ -461,23 +462,18 @@ RUN \
 ## Glances webtool is installed in python section below
 
 ## Filebrowser
-COPY resources/tools/filebrowser.sh $RESOURCES_PATH/tools/filebrowser.sh
 RUN \
     /bin/bash $RESOURCES_PATH/tools/filebrowser.sh --install && \
     # Cleanup
     clean-layer.sh
 
 # Install Visual Studio Code
-COPY resources/tools/vs-code-desktop.sh $RESOURCES_PATH/tools/vs-code-desktop.sh
 RUN \
     /bin/bash $RESOURCES_PATH/tools/vs-code-desktop.sh --install && \
     # Cleanup
     clean-layer.sh
 
 # Install Firefox
-
-COPY resources/tools/firefox.sh $RESOURCES_PATH/tools/firefox.sh
-
 RUN \
     /bin/bash $RESOURCES_PATH/tools/firefox.sh --install && \
     # Cleanup
@@ -562,24 +558,32 @@ COPY \
 # Install vscode extension
 # https://github.com/cdr/code-server/issues/171
 # Alternative install: /usr/local/bin/code-server --user-data-dir=$HOME/.config/Code/ --extensions-dir=$HOME/.vscode/extensions/ --install-extension ms-python-release && \
+ARG SHA256py=1b5f276b5f75824b4689a95aa580c3f8954bda1921180212b06a2a7183e72a26
+ARG SHA256gl=45ecbe5db4c14add5cabde2eb33ddf1ff6c8d3993a62c72dea38ca9f2e8eab02
+ARG SHA256cr=8d9f0d25921bb9515870aa055b9e8a799cf76ad4630ac3a9a7469df5bc479368
+ARG SHA256esl=2085177971f97ed88a021f349def005672add65d9884c22d12c4d3074be5b41d
+ARG SHA256mdl=ba1d87efc12434828692cd1a215c04f3f73500a424ab5deb4a5e16ff045f9a96
 RUN \
     cd $RESOURCES_PATH && \
     mkdir -p $HOME/.vscode/extensions/ && \
     # Install python extension - (newer versions are 30MB bigger)
     VS_PYTHON_VERSION="2020.1.58038" && \
     wget --quiet --no-check-certificate https://github.com/microsoft/vscode-python/releases/download/$VS_PYTHON_VERSION/ms-python-release.vsix && \
+    echo "${SHA256py} ms-python-release.vsix" | sha256sum -c - && \
     bsdtar -xf ms-python-release.vsix extension && \
     rm ms-python-release.vsix && \
     mv extension $HOME/.vscode/extensions/ms-python.python-$VS_PYTHON_VERSION && \
     # Install git lens: https://github.com/eamodio/vscode-gitlens
     VS_GITLENS_VERSION="10.2.0" && \
     wget --quiet --no-check-certificate https://github.com/eamodio/vscode-gitlens/releases/download/v$VS_GITLENS_VERSION/gitlens-$VS_GITLENS_VERSION.vsix && \
+    echo "${SHA256gl} gitlens-${VS_GITLENS_VERSION}.vsix" | sha256sum -c - && \
     bsdtar -xf gitlens-$VS_GITLENS_VERSION.vsix extension && \
     rm gitlens-$VS_GITLENS_VERSION.vsix && \
     mv extension $HOME/.vscode/extensions/eamodio.gitlens-$VS_GITLENS_VERSION && \
     # Install code runner: https://github.com/formulahendry/vscode-code-runner/releases/latest
     VS_CODE_RUNNER_VERSION="0.9.15" && \
     wget --quiet --no-check-certificate https://github.com/formulahendry/vscode-code-runner/releases/download/$VS_CODE_RUNNER_VERSION/code-runner-$VS_CODE_RUNNER_VERSION.vsix && \
+    echo "${SHA256cr} code-runner-${VS_CODE_RUNNER_VERSION}.vsix" | sha256sum -c - && \
     bsdtar -xf code-runner-$VS_CODE_RUNNER_VERSION.vsix extension && \
     rm code-runner-$VS_CODE_RUNNER_VERSION.vsix && \
     mv extension $HOME/.vscode/extensions/code-runner-$VS_CODE_RUNNER_VERSION && \
@@ -587,12 +591,14 @@ RUN \
     # Older versions do not support vscode 1.39 - https://github.com/microsoft/vscode-eslint/
     VS_ESLINT_VERSION="1.9.1" && \
     wget --quiet --no-check-certificate https://marketplace.visualstudio.com/_apis/public/gallery/publishers/dbaeumer/vsextensions/vscode-eslint/$VS_ESLINT_VERSION/vspackage -O dbaeumer.vscode-eslint.vsix && \
+    echo "${SHA256esl} dbaeumer.vscode-eslint.vsix" | sha256sum -c - && \
     bsdtar -xf dbaeumer.vscode-eslint.vsix extension && \
     rm dbaeumer.vscode-eslint.vsix && \
     mv extension $HOME/.vscode/extensions/dbaeumer.vscode-eslint-$VS_ESLINT_VERSION.vsix && \
     # Install Markdown lint extension: https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint
     VS_MARKDOWN_LINT_VERSION="0.33.0" && \
     wget --quiet --no-check-certificate https://marketplace.visualstudio.com/_apis/public/gallery/publishers/DavidAnson/vsextensions/vscode-markdownlint/$VS_MARKDOWN_LINT_VERSION/vspackage -O davidanson.vscode-markdownlint.vsix && \
+    echo "${SHA256mdl} davidanson.vscode-markdownlint.vsix" | sha256sum -c - && \
     bsdtar -xf davidanson.vscode-markdownlint.vsix extension && \
     rm davidanson.vscode-markdownlint.vsix && \
     mv extension $HOME/.vscode/extensions/davidanson.vscode-markdownlint-$VS_MARKDOWN_LINT_VERSION.vsix && \
@@ -690,7 +696,6 @@ RUN \
 COPY resources/icons $RESOURCES_PATH/icons
 
 # Copy resources into workspace
-COPY resources/tools $RESOURCES_PATH/tools
 COPY resources/tests $RESOURCES_PATH/tests
 COPY resources/tutorials $RESOURCES_PATH/tutorials
 COPY resources/licenses $RESOURCES_PATH/licenses
