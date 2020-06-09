@@ -41,8 +41,8 @@ WORKDIR $HOME
 
 # Make folders
 RUN \
-    mkdir $RESOURCES_PATH && chmod a+rwx $RESOURCES_PATH && \
-    mkdir $SSL_RESOURCES_PATH && chmod a+rwx $SSL_RESOURCES_PATH && \
+    mkdir $RESOURCES_PATH && \
+    mkdir $SSL_RESOURCES_PATH && \
     mkdir /var/run/supervisord && \
     chown -R ${NB_USER}:${NB_USER} /var/run/supervisord
 
@@ -735,8 +735,8 @@ RUN chown -R ${NB_USER}:${NB_USER} $XDG_CACHE_HOME && \
 
 # Small baked-in tool requests
 RUN /bin/bash $RESOURCES_PATH/tools/emacs.sh && \
-    apt-get install eog && \
-    clean-layer.sh
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists
 
 ### Moved here to debug landing page refactor:
 
