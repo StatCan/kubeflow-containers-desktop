@@ -3,7 +3,7 @@
 # Stops script execution if a command has an error
 set -e
 
-SHA256=7b3bce26aff8677ae8920490709839dc6c5fda83728aec09724245761b64f217
+SHA256=6c117339d77b9593ad20b6eb4601ff7d0fd468922550d500edf07e3071e9a041
 
 if [ ! -f "/usr/share/code/code" ]; then
     echo "Installing VS Code. Please wait..."
