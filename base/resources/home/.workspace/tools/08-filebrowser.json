@@ -1,6 +1,6 @@
 {
     "id": "filebrowser-link",
     "name": "Filebrowser",
-    "url_path": "/shared/filebrowser/files/",
+    "url_path": "/shared/filebrowser/files/home/jovyan/",
     "description": "Browse and manage workspace files"
 }
