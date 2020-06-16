@@ -1,4 +1,4 @@
-FROM k8scc01covidacr.azurecr.io/ml-workspace-base:master
+FROM k8scc01covidacr.azurecr.io/remote-desktop-base:master
 
 USER root
 
