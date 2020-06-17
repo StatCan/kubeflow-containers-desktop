@@ -21,7 +21,7 @@ define(['base/js/namespace', 'jquery', 'base/js/dialog', 'base/js/utils', 'requi
         // log to console
         console.info('Loaded Jupyter extension: Tooling Tree Widget')
 
-        window.document.title = "Workspace Home"
+        window.document.title = "Remote Desktop Home"
 
         base_url = utils.get_body_data('base-url')
 
