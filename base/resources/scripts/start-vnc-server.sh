@@ -20,7 +20,7 @@ chmod 600 $HOME/.vnc/passwd
 
 # Setting pidfile + command to execute
 pidfile="$HOME/.vnc/*:1.pid"
-command="/usr/bin/vncserver $DISPLAY -geometry $VNC_RESOLUTION -depth $VNC_COL_DEPTH -name Desktop-GUI -autokill"
+command="/usr/bin/vncserver $DISPLAY -geometry $VNC_RESOLUTION -depth $VNC_COL_DEPTH -name Remote-Desktop-GUI -autokill"
 
 # Proxy signals
 function kill_app(){
