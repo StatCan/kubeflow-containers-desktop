@@ -19,7 +19,6 @@ define(['base/js/namespace', 'jquery', 'base/js/dialog', 'base/js/utils', 'requi
         var div = $('<div/>');
         var form = $('<form/>');
         div.append('<label style="width: 50px">Port: </label><input type="number" id="port-input" style="width: 200px" min="1" max="65535"><br>')
-        div.append('<br><label style="width: 120px">Get shareable link: </label><input type="checkbox" id="shareable-checkbox">')
         form.appendTo(div);
         return div;
     }
@@ -171,14 +170,7 @@ define(['base/js/namespace', 'jquery', 'base/js/dialog', 'base/js/utils', 'requi
                                     if (!portInput) {
                                         alert("Please input a valid port!")
                                     } else {
-                                        if ($('#shareable-checkbox').is(":checked")) {
-                                            path = basePath + "shared/tools/" + portInput + "/"
-                                            components.getShareableToken(path, function (data) {
-                                                window.open(path + "?token=" + String(data), '_blank');
-                                            });
-                                        } else {
-                                            window.open(basePath + "tools/" + portInput + "/", '_blank')
-                                        }
+                                        window.open(basePath + "tools/" + portInput + "/", '_blank')
                                     }
                                 }
                             }
