@@ -1134,7 +1134,7 @@ const UI = {
             viewer.addEventListener('keydown', function (e) {
                 try {
                     console.log("viewer keydown");
-                    if (e.ctrlKey) {
+                    if (e.ctrlKey || e.metaKey) {
                         if (controlBar.classList.contains("noVNC_open")) {
                             return;
                         }
@@ -1149,7 +1149,7 @@ const UI = {
 
                 try {
                     console.log("viewer keyup: " + e.keyCode)
-                    if (e.ctrlKey && [67, 88].includes(e.keyCode)) {
+                    if ((e.ctrlKey || e.metaKey) && [67, 88].includes(e.keyCode)) {
                         if (controlBar.classList.contains("noVNC_open")) {
                             return;
                         }
