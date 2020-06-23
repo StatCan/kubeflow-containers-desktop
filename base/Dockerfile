@@ -247,7 +247,10 @@ COPY resources/nginx/lua-extensions /etc/nginx/nginx_plugins
 
 ### END BASICS ###
 
+COPY resources/tools $RESOURCES_PATH/tools
+
 ### RUNTIMES ###
+
 # Install Miniconda: https://repo.continuum.io/miniconda/
 ENV \
     CONDA_DIR=/opt/conda \
@@ -631,11 +634,6 @@ COPY resources/ssh/ssh_config resources/ssh/sshd_config  /etc/ssh/
 COPY resources/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY resources/config/xrdp.ini /etc/xrdp/xrdp.ini
 
-# Configure supervisor process
-COPY resources/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
-# Copy all supervisor program definitions into workspace
-COPY resources/supervisor/programs/ /etc/supervisor/conf.d/
-
 # Assume yes to all apt commands, to avoid user confusion around stdin.
 COPY resources/config/90assumeyes /etc/apt/apt.conf.d/
 
@@ -705,21 +703,10 @@ ARG ARG_VCS_REF="unknown"
 ARG ARG_WORKSPACE_VERSION="unknown"
 ENV WORKSPACE_VERSION=$ARG_WORKSPACE_VERSION
 
-RUN \
-    echo "${NB_USER} ALL=(ALL) NOPASSWD: /usr/sbin/cron, /usr/sbin/netdata, /usr/sbin/rsyslogd, /usr/sbin/xrdp, /usr/sbin/sslh, /usr/sbin/sshd" >> /etc/sudoers.d/${NB_USER}
-
-# Misc. connection permissions
-# RUN chown -R ${NB_USER}:${NB_USER} $XDG_CACHE_HOME && \
-#     chown -R ${NB_USER}:${NB_USER} /etc/nginx && \
-#     chown -R ${NB_USER}:${NB_USER} /etc/supervisor && \
-#     chown -R ${NB_USER}:${NB_USER} /var/log/supervisor/ && \
-#     chown -R ${NB_USER}:${NB_USER} /var/log/nginx && \
-#     chown -R ${NB_USER}:${NB_USER} /usr/local/openresty/nginx
-
-# Small baked-in tool requests - COMMENTED OUT WHILE TESTING PERMISSIONS
-# RUN /bin/bash $RESOURCES_PATH/tools/emacs.sh && \
-#     apt-get clean && \
-#     rm -rf /var/lib/apt/lists
+# Small baked-in tool requests
+RUN /bin/bash $RESOURCES_PATH/tools/emacs.sh && \
+    apt-get install eog && \
+    clean-layer.sh
 
 ### Moved here to debug landing page refactor:
 
@@ -765,14 +752,27 @@ RUN cp -r /home/$NB_USER /tmp/home_nbuser_default && \
 COPY init.sh /init.sh
 RUN chmod +x /init.sh
 
-###TEST NEW PERMISSIONS
+### Configure supervisor
 
-RUN chown -R ${NB_USER}:${NB_USER} $XDG_CACHE_HOME && \
-    chown -R ${NB_USER}:${NB_USER} /etc/nginx && \
-    chown -R ${NB_USER}:${NB_USER} /etc/supervisor && \
-    chown -R ${NB_USER}:${NB_USER} /var/log/supervisor/ && \
-    chown -R ${NB_USER}:${NB_USER} /var/log/nginx && \
-    chown -R ${NB_USER}:${NB_USER} /usr/local/openresty/nginx
+COPY /resources/supervisor /etc/supervisor
+
+# Default directory for supervisor.sock and supervisor.pid
+RUN mkdir /var/run/supervisord && \
+    chmod a+w /var/run/supervisord && \
+    # Write permissions for supervisor components
+    chmod -R a+w /var/log && \
+    chmod -R a+w /usr/local/openresty/nginx/ && \
+    # Write permission required for configure_nginx.py to update /etc/nginx/nginx.conf
+    # Seems to need it on the folder (though non-recursive), +w /etc/nginx/nginx.conf doesn't work...
+    chmod a+w /etc/nginx
+
+# Privileged supervisor commands
+ARG START_CRON="/usr/sbin/cron -f -L 15"
+ARG START_NETDATA="/usr/sbin/netdata -D -p 8050"
+ARG START_RSYSLOGD="/usr/sbin/rsyslogd -n"
+
+RUN \
+    echo "${NB_USER} ALL=(ALL) NOPASSWD: ${START_CRON}, ${START_NETDATA}, ${START_RSYSLOGD}" >> /etc/sudoers.d/${NB_USER}
 
 # use global option with tini to kill full process groups: https://github.com/krallin/tini#process-group-killing
 ENTRYPOINT ["/tini", "-g", "--"]
