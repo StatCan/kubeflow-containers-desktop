@@ -735,8 +735,8 @@ RUN chown -R ${NB_USER}:${NB_USER} $XDG_CACHE_HOME && \
 
 # Small baked-in tool requests
 RUN /bin/bash $RESOURCES_PATH/tools/emacs.sh && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists
+    apt-get install eog && \
+    clean-layer.sh
 
 ### Moved here to debug landing page refactor:
 
