@@ -41,14 +41,8 @@ WORKDIR $HOME
 
 # Make folders
 RUN \
-    mkdir $RESOURCES_PATH && chmod a+rwx $RESOURCES_PATH && \
-    mkdir $SSL_RESOURCES_PATH && chmod a+rwx $SSL_RESOURCES_PATH && \
-    mkdir /var/run/supervisord && \
-    chown -R ${NB_USER}:${NB_USER} /var/run/supervisord
-
-COPY resources/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
-COPY resources/supervisor/programs /etc/supervisor/conf.d/
-COPY resources/tools $RESOURCES_PATH/tools
+    mkdir $RESOURCES_PATH && \
+    mkdir $SSL_RESOURCES_PATH
 
 # Layer cleanup script
 COPY resources/scripts/clean-layer.sh  /usr/bin/clean-layer.sh
@@ -56,8 +50,8 @@ COPY resources/scripts/fix-permissions.sh  /usr/bin/fix-permissions.sh
 
  # Make clean-layer and fix-permissions executable
  RUN \
-    chmod u+rwx /usr/bin/clean-layer.sh && \
-    chmod u+rwx /usr/bin/fix-permissions.sh
+    chmod u+x /usr/bin/clean-layer.sh && \
+    chmod u+x /usr/bin/fix-permissions.sh
 
 # Generate and Set locals
 # https://stackoverflow.com/questions/28405902/how-to-set-the-locale-inside-a-debian-ubuntu-docker-container#38553499
@@ -183,7 +177,6 @@ RUN \
         libbz2-dev \
         liblzma-dev \
         zlib1g-dev && \
-    chmod -R a+rwx /usr/local/bin/ && \
     # configure dynamic linker run-time bindings
     ldconfig && \
     # Fix permissions
@@ -212,10 +205,9 @@ RUN \
     mkdir -p $HOME/.ssh/ && \
     # create empty config file if not exists
     touch $HOME/.ssh/config  && \
-    sudo chown -R ${NB_USER}:users $HOME/.ssh && \
+    chown -R ${NB_USER} $HOME/.ssh && \
     chmod 700 $HOME/.ssh && \
     printenv >> $HOME/.ssh/environment && \
-    chmod -R a+rwx /usr/local/bin/ && \
     # Fix permissions
     fix-permissions.sh $HOME && \
     # Cleanup
@@ -246,7 +238,6 @@ RUN \
     cd $RESOURCES_PATH && \
     rm -r $RESOURCES_PATH"/openresty" && \
     # Fix permissions
-    chmod -R u+rwx $RESOURCES_PATH && \
     # Cleanup
     clean-layer.sh
 
@@ -256,7 +247,10 @@ COPY resources/nginx/lua-extensions /etc/nginx/nginx_plugins
 
 ### END BASICS ###
 
+COPY resources/tools $RESOURCES_PATH/tools
+
 ### RUNTIMES ###
+
 # Install Miniconda: https://repo.continuum.io/miniconda/
 ENV \
     CONDA_DIR=/opt/conda \
@@ -284,7 +278,6 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}
     ln -s $CONDA_DIR/bin/conda /usr/bin/conda && \
     # Update pip
     $CONDA_DIR/bin/pip install --upgrade pip && \
-    chmod -R a+rwx /usr/local/bin/ && \
     # Cleanup - Remove all here since conda is not in path as of now
     $CONDA_DIR/bin/conda clean -y --packages && \
     $CONDA_DIR/bin/conda clean -y -a -f  && \
@@ -641,11 +634,6 @@ COPY resources/ssh/ssh_config resources/ssh/sshd_config  /etc/ssh/
 COPY resources/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY resources/config/xrdp.ini /etc/xrdp/xrdp.ini
 
-# Configure supervisor process
-COPY resources/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
-# Copy all supervisor program definitions into workspace
-COPY resources/supervisor/programs/ /etc/supervisor/conf.d/
-
 # Assume yes to all apt commands, to avoid user confusion around stdin.
 COPY resources/config/90assumeyes /etc/apt/apt.conf.d/
 
@@ -703,16 +691,9 @@ COPY resources/reports $RESOURCES_PATH/reports
 
 # Various configurations
 RUN \
-    # clear chome init file - not needed since we load settings manually
-    chmod -R u+rwx $WORKSPACE_HOME && \
-    chmod -R u+rwx $RESOURCES_PATH && \
-    # make all desktop launchers executable
-    chmod -R a+rwx /usr/share/applications/ && \
-    chmod a+rwx /usr/local/bin/start-notebook.sh && \
-    chmod a+rwx /usr/local/bin/start.sh && \
-    chmod a+rwx /usr/local/bin/start-singleuser.sh && \
-    chown root:root /tmp && \
-    chmod a+rwx /tmp
+    chmod +x /usr/local/bin/start-notebook.sh && \
+    chmod +x /usr/local/bin/start.sh && \
+    chmod +x /usr/local/bin/start-singleuser.sh
 
 # Set default values for environment variables
 
@@ -721,17 +702,6 @@ ARG ARG_BUILD_DATE="unknown"
 ARG ARG_VCS_REF="unknown"
 ARG ARG_WORKSPACE_VERSION="unknown"
 ENV WORKSPACE_VERSION=$ARG_WORKSPACE_VERSION
-
-RUN \
-    echo "${NB_USER} ALL=(ALL) NOPASSWD: /usr/sbin/cron, /usr/sbin/netdata, /usr/sbin/rsyslogd, /usr/sbin/xrdp, /usr/sbin/sslh, /usr/sbin/sshd" >> /etc/sudoers.d/${NB_USER}
-
-# Misc. connection permissions
-RUN chown -R ${NB_USER}:${NB_USER} $XDG_CACHE_HOME && \
-    chown -R ${NB_USER}:${NB_USER} /etc/nginx && \
-    chown -R ${NB_USER}:${NB_USER} /etc/supervisor && \
-    chown -R ${NB_USER}:${NB_USER} /var/log/supervisor/ && \
-    chown -R ${NB_USER}:${NB_USER} /var/log/nginx && \
-    chown -R ${NB_USER}:${NB_USER} /usr/local/openresty/nginx
 
 # Small baked-in tool requests
 RUN /bin/bash $RESOURCES_PATH/tools/emacs.sh && \
@@ -757,11 +727,14 @@ RUN \
 # Desktop icons, firefox default
 RUN cp /usr/share/applications/firefox.desktop $HOME/Desktop/firefox.desktop && \
     chown ${NB_USER}:${NB_USER} $HOME/Desktop/firefox.desktop && \
+    chmod +x $HOME/Desktop/firefox.desktop && \
     update-alternatives --install /usr/bin/x-www-browser x-www-browser /usr/bin/firefox 100 && \
     cp /usr/share/applications/code.desktop $HOME/Desktop/code.desktop && \
     chown ${NB_USER}:${NB_USER} $HOME/Desktop/code.desktop && \
+    chmod +x $HOME/Desktop/code.desktop && \
     echo "[Desktop Entry]\nVersion=1.0\nType=Link\nName=Netdata\nComment=Hardware Monitoring\nCategories=System;Utility;Development;\nIcon=/resources/icons/netdata-icon.png\nURL=http://localhost:8092/tools/netdata" > $HOME/Desktop/netdata.desktop && \
     chown ${NB_USER}:${NB_USER} $HOME/Desktop/netdata.desktop && \
+    chmod +x $HOME/Desktop/netdata.desktop && \
     # Remove mail and logout desktop icons
     rm /usr/share/applications/exo-mail-reader.desktop
 
@@ -778,6 +751,28 @@ RUN cp -r /home/$NB_USER /tmp/home_nbuser_default && \
 
 COPY init.sh /init.sh
 RUN chmod +x /init.sh
+
+### Configure supervisor
+
+COPY /resources/supervisor /etc/supervisor
+
+# Default directory for supervisor.sock and supervisor.pid
+RUN mkdir /var/run/supervisord && \
+    chmod a+w /var/run/supervisord && \
+    # Write permissions for supervisor components
+    chmod -R a+w /var/log && \
+    chmod -R a+w /usr/local/openresty/nginx/ && \
+    # Write permission required for configure_nginx.py to update /etc/nginx/nginx.conf
+    # Seems to need it on the folder (though non-recursive), +w /etc/nginx/nginx.conf doesn't work...
+    chmod a+w /etc/nginx
+
+# Privileged supervisor commands
+ARG START_CRON="/usr/sbin/cron -f -L 15"
+ARG START_NETDATA="/usr/sbin/netdata -D -p 8050"
+ARG START_RSYSLOGD="/usr/sbin/rsyslogd -n"
+
+RUN \
+    echo "${NB_USER} ALL=(ALL) NOPASSWD: ${START_CRON}, ${START_NETDATA}, ${START_RSYSLOGD}" >> /etc/sudoers.d/${NB_USER}
 
 # use global option with tini to kill full process groups: https://github.com/krallin/tini#process-group-killing
 ENTRYPOINT ["/tini", "-g", "--"]
