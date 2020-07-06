@@ -252,9 +252,11 @@ COPY resources/tools $RESOURCES_PATH/tools
 ### RUNTIMES ###
 
 # Install Miniconda: https://repo.continuum.io/miniconda/
+# Also moved DATA SCIENCE BASICS and the Conda Solving Environemnt fix here: 
+# All base conda in one layer brings down image size
 ENV \
     CONDA_DIR=/opt/conda \
-    PYTHON_VERSION="3.7.6" \
+    PYTHON_VERSION="3.7.7" \
     CONDA_PYTHON_DIR=/opt/conda/lib/python3.7 \
     CONDA_VERSION="4.7.12"
 ARG SHA256=a23fcffe97690d3bbcd34cda798c3a3318e0f35d863c5d4aca3fc983fe8450b7
@@ -271,6 +273,8 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}
     $CONDA_DIR/bin/conda config --system --append channels conda-forge && \
     $CONDA_DIR/bin/conda config --system --set auto_update_conda false && \
     $CONDA_DIR/bin/conda config --system --set show_channel_urls true && \
+    ## Conda Solving Environment Fix: Turn off channel priority
+    conda config --set channel_priority false && \
     # Update selected packages - install python 3.7.x
     $CONDA_DIR/bin/conda install -y --update-all python=$PYTHON_VERSION && \
     # Link Conda
@@ -278,12 +282,69 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}
     ln -s $CONDA_DIR/bin/conda /usr/bin/conda && \
     # Update pip
     $CONDA_DIR/bin/pip install --upgrade pip && \
+    ### DATA SCIENCE BASICS ###
+    ### Install main data science libs
+    # Link Conda - All python are linke to the conda instances 
+    # Linking python 3 crashes conda -> cannot install anyting - remove instead
+    ln -s -f $CONDA_DIR/bin/python /usr/bin/python && \
+    apt-get update && \
+    # upgrade pip
+    pip install --upgrade pip && \
+    conda install -y --update-all nomkl && \
+    conda install -y --update-all \
+            'python='$PYTHON_VERSION \
+            tqdm \
+            pyzmq \
+            cython \
+            graphviz \
+            numpy \
+            matplotlib \
+            scipy \
+            requests \
+            urllib3 \
+            pandas \
+            six \
+            future \
+            protobuf \
+            zlib \
+            boost \
+            psutil \
+            PyYAML \
+            python-crontab \
+            ipykernel \
+            cmake \
+            joblib \
+            Pillow \
+            ipython \
+            notebook \
+            # Selected by library evaluation
+            networkx \
+            click \
+            docutils \
+            imageio \
+            tabulate \
+            flask \
+            dill \
+            regex \
+            toolz \
+            jmespath && \
+    # OpenMPI support
+    apt-get install -y --no-install-recommends libopenmpi-dev openmpi-bin && \
+    # Install numba
+    conda install -y numba && \
+    # libartals == 40MB liblapack-dev == 20 MB
+    apt-get install -y --no-install-recommends liblapack-dev libatlas-base-dev libeigen3-dev libblas-dev && \
+    # pandoc -> installs libluajit -> problem for openresty
+    # HDF5 (19MB)
+    apt-get install -y libhdf5-dev && \
+    ### END DATA SCIENCE BASICS ###
     # Cleanup - Remove all here since conda is not in path as of now
     $CONDA_DIR/bin/conda clean -y --packages && \
     $CONDA_DIR/bin/conda clean -y -a -f  && \
     $CONDA_DIR/bin/conda build purge-all && \
     # Fix permissions
     fix-permissions.sh $CONDA_DIR && \
+    # Cleanup
     clean-layer.sh
 
 ENV PATH=$CONDA_DIR/bin:$PATH
@@ -473,70 +534,6 @@ RUN \
     clean-layer.sh
 
 ### END GUI TOOLS ###
-
-### DATA SCIENCE BASICS ###
-
-### Install main data science libs
-RUN \ 
-    # Link Conda - All python are linke to the conda instances 
-    # Linking python 3 crashes conda -> cannot install anyting - remove instead
-    ln -s -f $CONDA_DIR/bin/python /usr/bin/python && \
-    apt-get update && \
-    # upgrade pip
-    pip install --upgrade pip && \
-    conda install -y --update-all nomkl && \
-    conda install -y --update-all \
-            'python='$PYTHON_VERSION \
-            tqdm \
-            pyzmq \
-            cython \
-            graphviz \
-            numpy \
-            matplotlib \
-            scipy \
-            requests \
-            urllib3 \
-            pandas \
-            six \
-            future \
-            protobuf \
-            zlib \
-            boost \
-            psutil \
-            PyYAML \
-            python-crontab \
-            ipykernel \
-            cmake \
-            joblib \
-            Pillow \
-            'ipython=7.11.*' \
-            'notebook=6.0.*' \
-            # Selected by library evaluation
-            networkx \
-            click \
-            docutils \
-            imageio \
-            tabulate \
-            flask \
-            dill \
-            regex \
-            toolz \
-            jmespath && \
-    # OpenMPI support
-    apt-get install -y --no-install-recommends libopenmpi-dev openmpi-bin && \
-    # Install numba
-    conda install -y numba && \
-    # libartals == 40MB liblapack-dev == 20 MB
-    apt-get install -y --no-install-recommends liblapack-dev libatlas-base-dev libeigen3-dev libblas-dev && \
-    # pandoc -> installs libluajit -> problem for openresty
-    # HDF5 (19MB)
-    apt-get install -y libhdf5-dev && \
-    # Fix permissions
-    fix-permissions.sh $CONDA_DIR && \
-    # Cleanup
-    clean-layer.sh
-
-### END DATA SCIENCE BASICS ###
 
 ### JUPYTER ###
 
@@ -745,13 +742,6 @@ RUN mv $HOME/.config $HOME/.config2 && \
     fix-permissions.sh $HOME && \
     chmod a+x /resources/scripts/start-vnc-server.sh 
 
-# Workspace overwrite hotfix
-RUN cp -r /home/$NB_USER /tmp/home_nbuser_default && \
-    chown -R $NB_USER /tmp/home_nbuser_default
-
-COPY init.sh /init.sh
-RUN chmod +x /init.sh
-
 ### Configure supervisor
 
 COPY /resources/supervisor /etc/supervisor
@@ -773,6 +763,15 @@ ARG START_RSYSLOGD="/usr/sbin/rsyslogd -n"
 
 RUN \
     echo "${NB_USER} ALL=(ALL) NOPASSWD: ${START_CRON}, ${START_NETDATA}, ${START_RSYSLOGD}" >> /etc/sudoers.d/${NB_USER}
+
+### Workspace overwrite hotfix
+RUN cp -r /home/$NB_USER /tmp/home_nbuser_default && \
+    chown -R $NB_USER /tmp/home_nbuser_default
+
+###
+
+COPY init.sh /init.sh
+RUN chmod +x /init.sh
 
 # use global option with tini to kill full process groups: https://github.com/krallin/tini#process-group-killing
 ENTRYPOINT ["/tini", "-g", "--"]
