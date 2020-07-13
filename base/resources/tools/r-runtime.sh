@@ -16,6 +16,8 @@ if ! hash Rscript 2>/dev/null; then
     conda install -y -c conda-forge r-irkernel
     # Upgrade pyzmp to newest version -> gets downgraded for whatever reason...
     conda update -y pyzmq
+    # Fix permissions
+    fix-permissions.sh $CONDA_DIR
 else
     echo "R runtime is already installed"
 fi
