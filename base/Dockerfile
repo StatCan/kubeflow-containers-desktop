@@ -508,10 +508,11 @@ RUN \
     clean-layer.sh
 
 ## netdata
+
 RUN \
-    /bin/bash $RESOURCES_PATH/tools/netdata.sh --install && \
+ /bin/bash $RESOURCES_PATH/tools/netdata.sh --install && \
     # Cleanup
-    clean-layer.sh
+ clean-layer.sh
 
 ## Glances webtool is installed in python section below
 
@@ -668,7 +669,7 @@ RUN \
     cp -f $RESOURCES_PATH/branding/ml-workspace-logo.svg $RESOURCES_PATH"/filebrowser/img/logo.svg"
 
 # Configure netdata
-COPY resources/netdata/ /etc/netdata/
+#COPY resources/netdata/ /etc/netdata/
 
 # Configure Matplotlib
 RUN \
@@ -774,6 +775,8 @@ COPY init.sh /init.sh
 RUN chmod +x /init.sh
 
 # use global option with tini to kill full process groups: https://github.com/krallin/tini#process-group-killing
+
+
 ENTRYPOINT ["/tini", "-g", "--"]
 
 USER ${NB_USER}

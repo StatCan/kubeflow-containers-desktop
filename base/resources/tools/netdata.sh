@@ -3,7 +3,8 @@
 # Stops script execution if a command has an error
 set -e
 
-SHA256=82ddfedc8eb176f0220ba7435153d095d55df6d98a40f61b19fab1cd0139e594
+SHA256=c3ed9a4ca4ec940c224dc76eacd464a5b1113a8bce8bc1b1eff72cc1056b2630
+VERSION=1.23.2
 
 INSTALL_ONLY=0
 PORT=""
@@ -19,12 +20,11 @@ done
 if [ ! -f "/usr/sbin/netdata"  ]; then
     echo "Installing Netdata. Please wait..."
     cd $RESOURCES_PATH
+    wget --content-disposition https://packagecloud.io/netdata/netdata/packages/ubuntu/bionic/netdata_${VERSION}_amd64.deb/download.deb -O $RESOURCES_PATH/netdata.deb
+    echo "${SHA256} ${RESOURCES_PATH}/netdata.deb" | sha256sum -c -
     apt-get update
-    wget https://my-netdata.io/kickstart.sh -O $RESOURCES_PATH/netdata-install.sh
-    echo "${SHA256} ${RESOURCES_PATH}/netdata-install.sh" | sha256sum -c -
-    # Surpress output - if there is a problem remove to see logs > /dev/null
-    /bin/bash $RESOURCES_PATH/netdata-install.sh --dont-wait --dont-start-it --stable-channel --disable-telemetry > /dev/null
-    rm $RESOURCES_PATH/netdata-install.sh
+    apt-get install -y $RESOURCES_PATH/netdata.deb
+    rm $RESOURCES_PATH/netdata.deb
 else
     echo "Netdata is already installed"
 fi
