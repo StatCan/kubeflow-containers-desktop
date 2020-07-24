@@ -47,7 +47,7 @@ jobs:
         # Remote Desktop Base
         docker build -f base/Dockerfile -t ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-base:${{ github.sha }} base
         docker push ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-base:${{ github.sha }}
-        docker tag ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-base:${{ github.sha }} ${{ env.REGISTRY_NAME }}.azurecr.io/jupyter-web-app:${GITHUB_REF#refs/*/}
+        docker tag ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-base:${{ github.sha }} ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-base:${GITHUB_REF#refs/*/}
         docker push ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-base:${GITHUB_REF#refs/*/}
         docker system prune -f -a
 
@@ -63,7 +63,7 @@ jobs:
         # Remote Desktop R
         docker build -f r/Dockerfile -t ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-r:${{ github.sha }} r
         docker push ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-r:${{ github.sha }}
-        docker tag ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-r:${{ github.sha }} ${{ env.REGISTRY_NAME }}.azurecr.io/jupyter-web-app:${GITHUB_REF#refs/*/}
+        docker tag ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-r:${{ github.sha }} ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-r:${GITHUB_REF#refs/*/}
         docker push ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-r:${GITHUB_REF#refs/*/}
         docker system prune -f -a
 
@@ -76,10 +76,10 @@ jobs:
 
     # Container build and push to a Azure Container registry (ACR)
     - run: |
-        # Remote Desktop Base
+        # Remote Desktop Geomatics
         docker build -f geomatics/Dockerfile -t ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-geomatics:${{ github.sha }} geomatics
         docker push ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-geomatics:${{ github.sha }}
-        docker tag ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-geomatics:${{ github.sha }} ${{ env.REGISTRY_NAME }}.azurecr.io/jupyter-web-app:${GITHUB_REF#refs/*/}
+        docker tag ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-geomatics:${{ github.sha }} ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-geomatics:${GITHUB_REF#refs/*/}
         docker push ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-geomatics:${GITHUB_REF#refs/*/}
         docker system prune -f -a
 
