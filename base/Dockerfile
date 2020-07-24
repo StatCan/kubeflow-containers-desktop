@@ -510,9 +510,12 @@ RUN \
 ## netdata
 
 RUN \
- /bin/bash $RESOURCES_PATH/tools/netdata.sh --install && \
+    /bin/bash $RESOURCES_PATH/tools/netdata.sh --install && \
     # Cleanup
- clean-layer.sh
+    clean-layer.sh
+
+# Configure netdata
+#COPY resources/netdata/ /etc/netdata/
 
 ## Glances webtool is installed in python section below
 
@@ -667,9 +670,6 @@ RUN \
     cp -f $RESOURCES_PATH/branding/favicon.ico $RESOURCES_PATH"/filebrowser/img/icons/favicon-32x32.png" && \
     cp -f $RESOURCES_PATH/branding/favicon.ico $RESOURCES_PATH"/filebrowser/img/icons/favicon-16x16.png" && \
     cp -f $RESOURCES_PATH/branding/ml-workspace-logo.svg $RESOURCES_PATH"/filebrowser/img/logo.svg"
-
-# Configure netdata
-#COPY resources/netdata/ /etc/netdata/
 
 # Configure Matplotlib
 RUN \
