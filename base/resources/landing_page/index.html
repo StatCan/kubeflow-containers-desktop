@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<HTML>
+  <HEAD>
+    <title>Remote Desktop Landing Page</title>
+    <link rel="stylesheet" type="text/css" href="./style.css">
+  </HEAD>
+  <BODY>
+    <div class="content">
+      <h4>Interfaces</h4>
+      <div id="interfaces-container">
+        <div class="interfaces">
+          <div class="launcher" tabindex="0" title="Open a VNC Session to your Remote Desktop" data-path="tools/vnc/?autoconnect=true&password=vncpassword" onclick=launch(this) onkeypress="ifEnterLaunch(event, this)">
+            <img id="launcher-icon-novnc" src="icons/novnc.svg">
+            Remote Desktop
+          </div>
+          <div class="launcher" tabindex="0" title="Jupyter Notebook Tree View" data-path="tree?" onclick=launch(this) onkeypress="ifEnterLaunch(event, this)">
+            <img id="launcher-icon-jupyter" src="icons/jupyter.svg">
+            Jupyter
+          </div><!-- Replace with or add JupyterLab? -->
+        </div>
+      </div>
+      
+      <h4>In-Browser Tools</h4>
+      <div id="in-browser-tools-container">
+        <div class="in-browser-tools">
+          <div class="launcher" tabindex="0" title="Upload and Download Files" data-path="shared/filebrowser/files/home/jovyan/?token=admin" onclick=launch(this) onkeypress="ifEnterLaunch(event, this)">
+            <img class="launcher-icon" src="icons/filebrowser.svg">
+            Filebrowser
+          </div>
+          <div class="launcher" tabindex="0" title="Visual Studio Code Editor" data-path="tools/vscode" onclick=launch(this) onkeypress="ifEnterLaunch(event, this)">
+            <img class="launcher-icon" src="icons/visual_studio.svg">
+            VS Code Editor
+          </div>
+          <div class="launcher" tabindex="0" title="Remote Desktop Metrics" data-path="tools/netdata" onclick=launch(this) onkeypress="ifEnterLaunch(event, this)") >
+            <img class="launcher-icon" src="icons/netdata.svg">
+            Netdata Metrics
+          </div>
+          <div class="launcher" tabindex="0" title="Access a workspace internal port" id="access-port-button">
+            <img class="launcher-icon" src="icons/access_port.svg">
+            Access Port
+          </div>
+        </div>
+      </div>
+
+      <!-- Access Port Modal -->
+      <div id="access-port-modal" class="modal">
+        <div class="modal-content">
+          <span id="close-access-port-modal" class="close">&times;</span>
+          <div id="port-error" class="port-error"></div>
+          <div id="port-message" class="port-message">Access a workspace internal port:</div>
+          </br>
+          <input type ="number" id="port-input" name="port-input" min="1" max="655335">
+          <button onclick=accessPortInput() class="accessaccessPortButton">Access</button>
+        </div>
+      </div> 
+    </div>
+  </BODY>
+  <FOOTER>
+    <!-- <p id="page-path-debug"></p> -->
+    <script type="text/javascript" src="./script.js"></script>
+  </FOOTER>
+</HTML>

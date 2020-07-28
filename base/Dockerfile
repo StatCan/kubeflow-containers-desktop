@@ -504,8 +504,7 @@ RUN \
 # Call order: https://unix.stackexchange.com/questions/367600/what-is-the-order-that-linuxs-dynamic-linker-searches-paths-in
 ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:$CONDA_DIR/lib 
 
-## netdata
-
+## Netdata
 RUN \
     /bin/bash $RESOURCES_PATH/tools/netdata.sh --install && \
     # Cleanup
@@ -612,7 +611,6 @@ COPY resources/home/ $HOME/
 
 # Copy some configuration files
 COPY resources/ssh/ssh_config resources/ssh/sshd_config  /etc/ssh/
-COPY resources/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY resources/config/xrdp.ini /etc/xrdp/xrdp.ini
 
 # Assume yes to all apt commands, to avoid user confusion around stdin.
@@ -737,7 +735,10 @@ RUN \
 RUN cp -r /home/$NB_USER /tmp/home_nbuser_default && \
     chown -R $NB_USER /tmp/home_nbuser_default
 
-###
+### Landing page
+
+COPY resources/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY resources/landing_page $RESOURCES_PATH/landing_page/
 
 COPY init.sh /init.sh
 RUN chmod +x /init.sh
