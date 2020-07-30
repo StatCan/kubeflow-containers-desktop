@@ -24,5 +24,7 @@
         "--ignore=E203,E501,W503"
     ],
     "gitlens.showWhatsNewAfterUpgrades": false,
-    "gitlens.advanced.telemetry.enabled": false
+    "gitlens.advanced.telemetry.enabled": false,
+    "telemetry.enableTelemetry": false,
+    "telemetry.enableCrashReporter": false
 }
