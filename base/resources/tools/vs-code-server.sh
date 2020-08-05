@@ -12,6 +12,10 @@ if [ ! -f "/usr/local/bin/code-server"  ]; then
     echo "${SHA256} ./vscode-web.deb" | sha256sum -c -
     dpkg -i ./vscode-web.deb
     rm ./vscode-web.deb
+    #Fix critical vulnerabilities
+    cd /usr/lib/code-server/lib/vscode/
+    yarn remove $(cat package.json | jq -r '.devDependencies | keys | join(" ")')
+    yarn cache clean
 
 else
     echo "VS Code Server is already installed"

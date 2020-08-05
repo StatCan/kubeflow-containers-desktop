@@ -368,6 +368,8 @@ RUN \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends yarn && \
+    # Install libxkbfile-dev which is necessary for YARN commands
+    apt-get install -y libxkbfile-dev && \
     # Install typescript 
     /usr/local/lib/nodejs/node-$VERSION-$DISTRO/bin/npm install -g typescript && \
     # Install webpack - 32 MB
@@ -503,7 +505,7 @@ ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:$CONDA_DIR/l
 
 ## VS Code Server: https://github.com/codercom/code-server
 RUN \
-    /bin/bash $RESOURCES_PATH/tools/vs-code-server.sh --install && \
+   /bin/bash $RESOURCES_PATH/tools/vs-code-server.sh --install && \
     # Cleanup
     clean-layer.sh
 
@@ -748,6 +750,10 @@ RUN cp -r /home/$NB_USER /tmp/home_nbuser_default && \
 
 COPY init.sh /init.sh
 RUN chmod +x /init.sh
+
+### Trivy Vulnerability test
+### RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sh -s -- -b /usr/local/bin
+### RUN trivy filesystem -severity CRITICAL /
 
 # use global option with tini to kill full process groups: https://github.com/krallin/tini#process-group-killing
 
