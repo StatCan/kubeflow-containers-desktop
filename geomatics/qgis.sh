@@ -3,13 +3,13 @@
 set -e
 
 if ! hash qgis 2>/dev/null; then
-  sh -c 'echo "deb http://qgis.org/debian bionic main" >> /etc/apt/sources.list'  
-	sh -c 'echo "deb-src http://qgis.org/debian bionic main " >> /etc/apt/sources.list'  
-	cat $RESOURCES_PATH/tools/qgis-2019.gpg.key | gpg --import
-	gpg --fingerprint 51F523511C7028C3
-	gpg --export --armor 51F523511C7028C3 | apt-key add -
-	apt-get update
-  LD_LIBRARY_PATH="" LD_PRELOAD="" apt-get install --yes qgis python-qgis
+  apt-get update
+  apt-get install gnupg software-properties-common
+  cat $RESOURCES_PATH/tools/qgis-2020.gpg.key | gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/qgis-archive.gpg --import
+  chmod a+r /etc/apt/trusted.gpg.d/qgis-archive.gpg
+  add-apt-repository "deb https://qgis.org/debian `lsb_release -c -s` main"
+  apt-get update
+  apt-get install qgis qgis-plugin-grass
 
   echo "[Desktop Entry]
 	Version=1.0
