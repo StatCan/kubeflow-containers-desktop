@@ -368,14 +368,17 @@ RUN \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends yarn && \
-    # Install libxkbfile-dev which is necessary for YARN commands
+    # Install libxkbfile-dev which is necessary for certain YARN and NPM commands/installs
     apt-get install -y libxkbfile-dev && \
     # Install typescript 
     /usr/local/lib/nodejs/node-$VERSION-$DISTRO/bin/npm install -g typescript && \
     # Install webpack - 32 MB
-    /usr/local/lib/nodejs/node-$VERSION-$DISTRO/bin/npm install -g webpack
+    /usr/local/lib/nodejs/node-$VERSION-$DISTRO/bin/npm install -g webpack && \
     # Cleanup
-    #clean-layer.sh
+    clean-layer.sh && \
+    # Fix permissions
+    fix-permissions.sh /usr/local/lib/nodejs/node-$VERSION-$DISTRO && \
+    fix-permissions.sh $HOME
 
 ENV PATH=/usr/local/lib/nodejs/node-$VERSION-$DISTRO/bin:$PATH
 
@@ -501,14 +504,6 @@ RUN \
 # Call order: https://unix.stackexchange.com/questions/367600/what-is-the-order-that-linuxs-dynamic-linker-searches-paths-in
 ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:$CONDA_DIR/lib 
 
-# Install Web Tools - Offered via Jupyter Tooling Plugin
-
-## VS Code Server: https://github.com/codercom/code-server
-RUN \
-   /bin/bash $RESOURCES_PATH/tools/vs-code-server.sh --install && \
-    # Cleanup
-    clean-layer.sh
-
 ## netdata
 
 RUN \
@@ -517,19 +512,11 @@ RUN \
     clean-layer.sh
 
 # Configure netdata
-#COPY resources/netdata/ /etc/netdata/
-
-## Glances webtool is installed in python section below
+# COPY resources/netdata/ /etc/netdata/
 
 ## Filebrowser
 RUN \
     /bin/bash $RESOURCES_PATH/tools/filebrowser.sh --install && \
-    # Cleanup
-    clean-layer.sh
-
-# Install Visual Studio Code
-RUN \
-    /bin/bash $RESOURCES_PATH/tools/vs-code-desktop.sh --install && \
     # Cleanup
     clean-layer.sh
 
@@ -551,7 +538,23 @@ COPY \
 
 ### VSCODE ###
 
-# Install vscode extension
+## Install Visual Studio Code Server (In-Browser): https://github.com/codercom/code-server
+# npm --production install bypasses vulnerable devDependencies
+# Initial attempts at install from root or from ${NB_USER} locally failed
+
+USER ${NB_USER}
+RUN npm install -g --production code-server && \
+    npm cache clean --force && \
+    rm -rf $HOME/.npm/* $HOME/.node-gyp/*
+USER root
+
+# Install Visual Studio Code (Desktop)
+RUN \
+    /bin/bash $RESOURCES_PATH/tools/vs-code-desktop.sh --install && \
+    # Cleanup
+    clean-layer.sh
+
+# Install Visual Studio Code extensions
 # https://github.com/cdr/code-server/issues/171
 # Alternative install: /usr/local/bin/code-server --user-data-dir=$HOME/.config/Code/ --extensions-dir=$HOME/.vscode/extensions/ --install-extension ms-python-release && \
 ARG SHA256py=62327bf119880f0ffe0a4ca3dc61371c73ed6a2481c79ab60b0163a3fd072128
@@ -673,17 +676,11 @@ RUN \
 # Set default values for environment variables
 
 ### END CONFIGURATION ### 
-ARG ARG_BUILD_DATE="unknown"
-ARG ARG_VCS_REF="unknown"
-ARG ARG_WORKSPACE_VERSION="unknown"
-ENV WORKSPACE_VERSION=$ARG_WORKSPACE_VERSION
 
 # Small baked-in tool requests
 RUN /bin/bash $RESOURCES_PATH/tools/emacs.sh && \
     apt-get install eog && \
     clean-layer.sh
-
-### Moved here to debug landing page refactor:
 
 # Install Jupyter Tooling Extension
 COPY resources/jupyter/extensions $RESOURCES_PATH/jupyter-extensions
@@ -692,12 +689,6 @@ RUN \
     pip install --no-cache-dir $RESOURCES_PATH/jupyter-extensions/tooling-extension/ && \
     # Cleanup
     clean-layer.sh
-    
-# Port 8080 is the main access port (also includes SSH)
-# Port 5091 is the VNC port
-# Port 3389 is the RDP port
-# Port 8090 is the Jupyter Notebook Server
-# See supervisor.conf for more ports
 
 # Desktop icons, firefox default
 RUN cp /usr/share/applications/firefox.desktop $HOME/Desktop/firefox.desktop && \
@@ -751,16 +742,20 @@ RUN cp -r /home/$NB_USER /tmp/home_nbuser_default && \
 COPY init.sh /init.sh
 RUN chmod +x /init.sh
 
-### Trivy Vulnerability test
+### Trivy vulnerability test
 ### RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sh -s -- -b /usr/local/bin
 ### RUN trivy filesystem -severity CRITICAL /
 
 # use global option with tini to kill full process groups: https://github.com/krallin/tini#process-group-killing
-
-
 ENTRYPOINT ["/tini", "-g", "--"]
 
 USER ${NB_USER}
+
+# Port 8080 is the main access port (also includes SSH)
+# Port 5091 is the VNC port
+# Port 3389 is the RDP port
+# Port 8090 is the Jupyter Notebook Server
+# See supervisor.conf for more ports
 
 EXPOSE 8888
 
