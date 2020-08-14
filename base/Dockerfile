@@ -557,13 +557,13 @@ RUN \
 # Install Visual Studio Code extensions
 # https://github.com/cdr/code-server/issues/171
 # Alternative install: /usr/local/bin/code-server --user-data-dir=$HOME/.config/Code/ --extensions-dir=$HOME/.vscode/extensions/ --install-extension ms-python-release && \
-ARG SHA256py=62327bf119880f0ffe0a4ca3dc61371c73ed6a2481c79ab60b0163a3fd072128
+ARG SHA256py=a4191fefc0e027fbafcd87134ac89a8b1afef4fd8b9dc35f14d6ee7bdf186348
 ARG SHA256gl=ed130b2a0ddabe5132b09978195cefe9955a944766a72772c346359d65f263cc
 RUN \
     cd $RESOURCES_PATH && \
     mkdir -p $HOME/.vscode/extensions/ && \
     # Install python extension - (newer versions are 30MB bigger)
-    VS_PYTHON_VERSION="2020.6.91350" && \
+    VS_PYTHON_VERSION="2020.5.86806" && \
     wget --quiet --no-check-certificate https://github.com/microsoft/vscode-python/releases/download/$VS_PYTHON_VERSION/ms-python-release.vsix && \
     echo "${SHA256py} ms-python-release.vsix" | sha256sum -c - && \
     bsdtar -xf ms-python-release.vsix extension && \
