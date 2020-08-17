@@ -510,7 +510,7 @@ RUN \
     # Cleanup
     clean-layer.sh
 
-# Configure netdata
+# Configure Netdata
 # COPY resources/netdata/ /etc/netdata/
 
 ## Filebrowser
