@@ -676,7 +676,9 @@ RUN \
 ### END CONFIGURATION ### 
 
 # Small baked-in tool requests
-RUN /bin/bash $RESOURCES_PATH/tools/emacs.sh && \
+RUN add-apt-repository ppa:libreoffice/ppa && \
+    apt-get install libreoffice && \
+    /bin/bash $RESOURCES_PATH/tools/emacs.sh && \
     apt-get install eog && \
     clean-layer.sh
 
@@ -699,6 +701,9 @@ RUN cp /usr/share/applications/firefox.desktop $HOME/Desktop/firefox.desktop && 
     echo "[Desktop Entry]\nVersion=1.0\nType=Link\nName=Netdata\nComment=Hardware Monitoring\nCategories=System;Utility;Development;\nIcon=/resources/icons/netdata-icon.png\nURL=http://localhost:8092/tools/netdata" > $HOME/Desktop/netdata.desktop && \
     chown ${NB_USER}:${NB_USER} $HOME/Desktop/netdata.desktop && \
     chmod +x $HOME/Desktop/netdata.desktop && \
+    echo "[Desktop Entry]\nVersion=1.0\nType=Application\nName=LibreOffice\nComment=The office productivity suite compatible to the open and standardized ODF document format. Supported by The Document Foundation.\nExec=libreoffice %U\nIcon=libreoffice-startcenter\nPath=\nTerminal=false\nStartupNotify=true" > $HOME/Desktop/libreoffice.desktop && \
+    chown ${NB_USER}:${NB_USER} $HOME/Desktop/libreoffice.desktop && \
+    chmod +x $HOME/Desktop/libreoffice.desktop && \
     # Remove mail and logout desktop icons
     rm /usr/share/applications/exo-mail-reader.desktop
 
