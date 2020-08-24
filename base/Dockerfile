@@ -676,8 +676,10 @@ RUN \
 ### END CONFIGURATION ### 
 
 # Small baked-in tool requests
-RUN /bin/bash $RESOURCES_PATH/tools/emacs.sh && \
+RUN add-apt-repository ppa:libreoffice/ppa && \
+    /bin/bash $RESOURCES_PATH/tools/emacs.sh && \
     apt-get install eog && \
+    apt-get install libreoffice-calc libreoffice-gtk3 && \
     clean-layer.sh
 
 # Install Jupyter Tooling Extension
@@ -699,6 +701,9 @@ RUN cp /usr/share/applications/firefox.desktop $HOME/Desktop/firefox.desktop && 
     echo "[Desktop Entry]\nVersion=1.0\nType=Link\nName=Netdata\nComment=Hardware Monitoring\nCategories=System;Utility;Development;\nIcon=/resources/icons/netdata-icon.png\nURL=http://localhost:8092/tools/netdata" > $HOME/Desktop/netdata.desktop && \
     chown ${NB_USER}:${NB_USER} $HOME/Desktop/netdata.desktop && \
     chmod +x $HOME/Desktop/netdata.desktop && \
+    echo "[Desktop Entry]\nVersion=1.0\nType=Application\nName=LibreOffice Calc\nComment=Perform calculations, analyze information and manage lists in spreadsheets by using Calc.\nExec=libreoffice --calc %U\nIcon=libreoffice-calc\nPath=\nTerminal=false\nStartupNotify=true" > $HOME/Desktop/calc.desktop && \
+    chown ${NB_USER}:${NB_USER} $HOME/Desktop/calc.desktop && \
+    chmod +x $HOME/Desktop/calc.desktop && \
     # Remove mail and logout desktop icons
     rm /usr/share/applications/exo-mail-reader.desktop
 
