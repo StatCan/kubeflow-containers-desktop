@@ -27,10 +27,10 @@ Exec=/usr/lib/rstudio/bin/rstudio %F
 Icon=rstudio
 Path=
 Terminal=false
-StartupNotify=false" >> "/tmp/home_nbuser_default/Desktop/RStudio.desktop"
+StartupNotify=false" >> "/home_nbuser_default/Desktop/RStudio.desktop"
 
-	chmod +x "/tmp/home_nbuser_default/Desktop/RStudio.desktop"
-	chown ${NB_USER}:${NB_USER} /tmp/home_nbuser_default/Desktop/RStudio.desktop   
+	chmod +x "/home_nbuser_default/Desktop/RStudio.desktop"
+	chown ${NB_USER}:${NB_USER} /home_nbuser_default/Desktop/RStudio.desktop   
 
 else
     echo "RStudio is already installed"

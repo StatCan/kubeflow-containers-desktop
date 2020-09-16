@@ -29,9 +29,9 @@ fix-permissions.sh $CONDA_DIR
 # Install vscode R extension 
 if hash code 2>/dev/null; then
     # https://marketplace.visualstudio.com/items?itemName=Ikuyadeu.r
-    LD_LIBRARY_PATH="" LD_PRELOAD="" code --user-data-dir=/tmp/home_nbuser_default/.config/Code/ --extensions-dir=/tmp/home_nbuser_default/.vscode/extensions/ --install-extension Ikuyadeu.r
+    LD_LIBRARY_PATH="" LD_PRELOAD="" code --user-data-dir=/home_nbuser_default/.config/Code/ --extensions-dir=/home_nbuser_default/.vscode/extensions/ --install-extension Ikuyadeu.r
     export USER_GID=${USER_GID}
-    fix-permissions.sh /tmp/home_nbuser_default/
+    fix-permissions.sh /home_nbuser_default/
     
 else
     echo "Please install the desktop version of vscode via the vs-code-desktop.sh script to install R vscode extensions."

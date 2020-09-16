@@ -20,10 +20,10 @@ if ! hash qgis 2>/dev/null; then
 	Icon=qgis
 	Path=
 	Terminal=false
-	StartupNotify=false" >> "/tmp/home_nbuser_default/Desktop/QGIS Desktop.desktop"
+	StartupNotify=false" >> "/home_nbuser_default/Desktop/QGIS Desktop.desktop"
 
-  chmod +x "/tmp/home_nbuser_default/Desktop/QGIS Desktop.desktop"
-  chown ${NB_USER}:${NB_USER} "/tmp/home_nbuser_default/Desktop/QGIS Desktop.desktop"
+  chmod +x "/home_nbuser_default/Desktop/QGIS Desktop.desktop"
+  chown ${NB_USER}:${NB_USER} "/home_nbuser_default/Desktop/QGIS Desktop.desktop"
 
 else
     echo "QGIS is already installed"
