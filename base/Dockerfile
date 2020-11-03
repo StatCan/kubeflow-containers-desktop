@@ -737,8 +737,8 @@ RUN \
     echo "${NB_USER} ALL=(ALL) NOPASSWD: ${START_CRON}, ${START_NETDATA}, ${START_RSYSLOGD}" >> /etc/sudoers.d/${NB_USER}
 
 ### Workspace overwrite hotfix
-RUN cp -r /home/$NB_USER /tmp/home_nbuser_default && \
-    chown -R $NB_USER /tmp/home_nbuser_default
+RUN cp -r /home/$NB_USER /home_nbuser_default && \
+    chown -R $NB_USER /home_nbuser_default
 
 ### Landing page
 
