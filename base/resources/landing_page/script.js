@@ -29,6 +29,18 @@ window.onclick = function (event) {
   }
 };
 
+window.addEventListener("load", (event) => {
+  var xmlHttp = new XMLHttpRequest();
+  const url = window.location.href + "/tools/42536/";
+  xmlHttp.open("GET", url);
+  xmlHttp.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      console.log(xmlHttp.responseText);
+    }
+  };
+  xmlHttp.send();
+});
+
 function removeFocus() {
   //Remove tab focus from launcher buttons
   var launchers = document.querySelectorAll(".launcher, .launcherlink");

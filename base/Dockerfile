@@ -535,6 +535,9 @@ COPY \
     resources/jupyter/start-singleuser.sh \
     /usr/local/bin/
 
+### FRENCH LANGUAGE ####
+COPY resources/scripts/languagecheck.js /usr/local/bin/
+
 ### VSCODE ###
 
 ## Install Visual Studio Code Server (In-Browser): https://github.com/codercom/code-server
@@ -558,6 +561,7 @@ RUN \
 # Alternative install: /usr/local/bin/code-server --user-data-dir=$HOME/.config/Code/ --extensions-dir=$HOME/.vscode/extensions/ --install-extension ms-python-release && \
 ARG SHA256py=a4191fefc0e027fbafcd87134ac89a8b1afef4fd8b9dc35f14d6ee7bdf186348
 ARG SHA256gl=ed130b2a0ddabe5132b09978195cefe9955a944766a72772c346359d65f263cc
+ARG SHA256fr=7612ea725e669b63a504106f7b43e035e783ed74c2f34c6edae1345c6c647918
 RUN \
     cd $RESOURCES_PATH && \
     mkdir -p $HOME/.vscode/extensions/ && \
@@ -575,6 +579,13 @@ RUN \
     bsdtar -xf gitlens-$VS_GITLENS_VERSION.vsix extension && \
     rm gitlens-$VS_GITLENS_VERSION.vsix && \
     mv extension $HOME/.vscode/extensions/eamodio.gitlens-$VS_GITLENS_VERSION && \
+    #Install French Language extension: https://marketplace.visualstudio.com/items?itemName=MS-CEINTL.vscode-language-pack-fr
+    VS_FRENCH_VERSION="1.44.0" && \
+    wget --quiet --no-check-certificate --content-disposition https://marketplace.visualstudio.com/_apis/public/gallery/publishers/MS-CEINTL/vsextensions/vscode-language-pack-fr/$VS_FRENCH_VERSION/vspackage &&\
+    echo "${SHA256fr} MS-CEINTL.vscode-language-pack-fr-${VS_FRENCH_VERSION}.vsix" | sha256sum -c - && \
+    bsdtar -xf MS-CEINTL.vscode-language-pack-fr-$VS_FRENCH_VERSION.vsix extension && \
+    rm MS-CEINTL.vscode-language-pack-fr-$VS_FRENCH_VERSION.vsix && \
+    mv extension $HOME/.vscode/extensions/ms-ceintl.vscode-language-pack-fr-$VS_FRENCH_VERSION && \
     # Fix permissions
     fix-permissions.sh $HOME/.vscode/extensions/ && \
     # Cleanup
