@@ -561,7 +561,6 @@ RUN \
 # Alternative install: /usr/local/bin/code-server --user-data-dir=$HOME/.config/Code/ --extensions-dir=$HOME/.vscode/extensions/ --install-extension ms-python-release && \
 ARG SHA256py=a4191fefc0e027fbafcd87134ac89a8b1afef4fd8b9dc35f14d6ee7bdf186348
 ARG SHA256gl=ed130b2a0ddabe5132b09978195cefe9955a944766a72772c346359d65f263cc
-ARG SHA256fr=7612ea725e669b63a504106f7b43e035e783ed74c2f34c6edae1345c6c647918
 RUN \
     cd $RESOURCES_PATH && \
     mkdir -p $HOME/.vscode/extensions/ && \
@@ -579,13 +578,21 @@ RUN \
     bsdtar -xf gitlens-$VS_GITLENS_VERSION.vsix extension && \
     rm gitlens-$VS_GITLENS_VERSION.vsix && \
     mv extension $HOME/.vscode/extensions/eamodio.gitlens-$VS_GITLENS_VERSION && \
-    #Install French Language extension: https://marketplace.visualstudio.com/items?itemName=MS-CEINTL.vscode-language-pack-fr
-    VS_FRENCH_VERSION="1.44.0" && \
-    wget --quiet --no-check-certificate --content-disposition https://marketplace.visualstudio.com/_apis/public/gallery/publishers/MS-CEINTL/vsextensions/vscode-language-pack-fr/$VS_FRENCH_VERSION/vspackage &&\
-    echo "${SHA256fr} MS-CEINTL.vscode-language-pack-fr-${VS_FRENCH_VERSION}.vsix" | sha256sum -c - && \
-    bsdtar -xf MS-CEINTL.vscode-language-pack-fr-$VS_FRENCH_VERSION.vsix extension && \
-    rm MS-CEINTL.vscode-language-pack-fr-$VS_FRENCH_VERSION.vsix && \
+    # Install French Language extension via building and copying https://github.com/microsoft/vscode-loc/tree/release/1.50
+    # https://github.com/Microsoft/vscode-loc/wiki/How-to-create-language-pack-extension#1-build-vsix 
+    VS_FRENCH_VERSION="1.50.2" && \
+    VS_LOCALE_REPO_VERSION="1.50" && \
+    git clone -b release/$VS_LOCALE_REPO_VERSION https://github.com/microsoft/vscode-loc.git &&\
+    cd vscode-loc && \
+    npm install -g vsce && \
+    cd i18n/vscode-language-pack-fr && \
+    vsce package && \
+    bsdtar -xf vscode-language-pack-fr-$VS_FRENCH_VERSION.vsix extension && \
     mv extension $HOME/.vscode/extensions/ms-ceintl.vscode-language-pack-fr-$VS_FRENCH_VERSION && \
+    cd ../../../ && \
+    # -fr option is required. git clone protects the directory and cannot delete it without -fr
+    rm -fr vscode-loc && \
+    npm uninstall -g vsce && \
     # Fix permissions
     fix-permissions.sh $HOME/.vscode/extensions/ && \
     # Cleanup
