@@ -754,6 +754,17 @@ ARG START_RSYSLOGD="/usr/sbin/rsyslogd -n"
 RUN \
     echo "${NB_USER} ALL=(ALL) NOPASSWD: ${START_CRON}, ${START_NETDATA}, ${START_RSYSLOGD}" >> /etc/sudoers.d/${NB_USER}
 
+# Install the French Locale. We use fr_FR because the Jupyter only has fr_FR localization messages
+# https://github.com/jupyter/notebook/tree/master/notebook/i18n/fr_FR/LC_MESSAGES
+RUN \
+    apt-get update && \
+    apt-get install -y locales && \
+    sed -i -e 's/# fr_FR.UTF-8 UTF-8/fr_FR.UTF-8 UTF-8/' /etc/locale.gen && \
+    locale-gen && \
+    dpkg-reconfigure --frontend=noninteractive locales && \
+    clean-layer.sh
+
+
 ### Workspace overwrite hotfix
 RUN cp -r /home/$NB_USER /home_nbuser_default && \
     chown -R $NB_USER /home_nbuser_default
