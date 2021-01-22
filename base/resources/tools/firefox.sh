@@ -3,7 +3,7 @@
 # Stops script execution if a command has an error
 set -e
 
-SHA256=6f15dc7b7de081a4f11ffa24d6ad6cd1877131941ff762d14cb3b0faf4291867
+SHA256=486927b18e6437c685e37983aed4ca2ce96c74802da10d7a811f7b6e22516b8b
 
 function disableUpdate() {
     ff_def="$1/browser/defaults/profile"
@@ -22,7 +22,6 @@ user_pref("app.update.lastUpdateTime.blocklist-background-update-timer", 1182010
 user_pref("app.update.lastUpdateTime.microsummary-generator-update-timer", 1222586145);
 user_pref("app.update.lastUpdateTime.search-engine-update-timer", 1182010203);' > $ff_def/user.js
 }
-
 function instFF() {
     if [ ! "${1:0:1}" == "" ]; then
         FF_VERS=$1
@@ -38,7 +37,7 @@ function instFF() {
             ln -s "$FF_INST/firefox" /usr/bin/firefox
             rm /tmp/firefox.tar.bz2
             # Create desktop icon
-            printf "[Desktop Entry]\nVersion=1.0\nEncoding=UTF-8\nName=Firefox Web Browser\nComment=Webbrowser\nExec=firefox\nTerminal=false\nX-MultipleArgs=false\nType=Application\nIcon=/usr/lib/firefox/browser/chrome/icons/default/default128.png\nCategories=GNOME;GTK;Network;WebBrowser;\nStartupNotify=true;" > /usr/share/applications/firefox.desktop
+            printf "[Desktop Entry]\nVersion=1.0\nEncoding=UTF-8\nName=Firefox\nComment=Browse the World Wide Web\nComment[fr]=Naviguer sure le Web\nExec=firefox\nTerminal=false\nX-MultipleArgs=false\nType=Application\nIcon=/usr/lib/firefox/browser/chrome/icons/default/default128.png\nCategories=GNOME;GTK;Network;WebBrowser;\nStartupNotify=true;" > /usr/share/applications/firefox.desktop
             # MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;video/webm;application/x-xpinstall;
             disableUpdate $FF_INST
             exit $?
@@ -50,7 +49,7 @@ function instFF() {
 
 if ! hash firefox 2>/dev/null; then
     echo "Installing Firefox. Please wait..."
-    instFF '68.9.0esr' '/usr/lib/firefox'
+    instFF '78.6.1esr'  '/usr/lib/firefox'
 else
     echo "Firefox is already installed"
 fi

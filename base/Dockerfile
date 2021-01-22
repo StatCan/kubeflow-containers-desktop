@@ -449,7 +449,7 @@ RUN \
     # create user vnc directory
     mkdir -p $HOME/.vnc
 
-# Install Terminal / GDebi (Package Manager) / Glogg (Stream file viewer) & archive tools
+# Install Terminal / GDebi (Package Manager) / & archive tools
 # Discover Tools:
 # https://wiki.ubuntuusers.de/Startseite/
 # https://wiki.ubuntuusers.de/Xfce_empfohlene_Anwendungen/
@@ -466,11 +466,8 @@ RUN \
     # Search for files
     apt-get install -y --no-install-recommends catfish && \
     # TODO: Unable to locate package:  apt-get install -y --no-install-recommends gnome-search-tool && 
-    apt-get install -y --no-install-recommends font-manager && \
     # vs support for thunar
     apt-get install -y thunar-vcs-plugin && \
-    # Streaming text editor for large files
-    apt-get install -y --no-install-recommends glogg  && \
     apt-get install -y --no-install-recommends baobab && \
     # Lightweight text editor
     apt-get install -y mousepad && \
@@ -481,7 +478,7 @@ RUN \
     apt-get install -y p7zip p7zip-rar && \
     apt-get install -y --no-install-recommends thunar-archive-plugin && \
     apt-get install -y xarchiver && \
-    # DB Utils
+    # DB Utils 
     apt-get install -y --no-install-recommends sqlitebrowser && \
     # Install nautilus and support for sftp mounting
     apt-get install -y --no-install-recommends nautilus gvfs-backends && \
@@ -571,15 +568,6 @@ RUN \
     bsdtar -xf ms-python-release.vsix extension && \
     rm ms-python-release.vsix && \
     mv extension $HOME/.vscode/extensions/ms-python.python-$VS_PYTHON_VERSION && \
-    # Install git lens: https://github.com/eamodio/vscode-gitlens
-    VS_GITLENS_VERSION="10.2.2" && \
-    wget --quiet --no-check-certificate https://github.com/eamodio/vscode-gitlens/releases/download/v$VS_GITLENS_VERSION/gitlens-$VS_GITLENS_VERSION.vsix && \
-    echo "${SHA256gl} gitlens-${VS_GITLENS_VERSION}.vsix" | sha256sum -c - && \
-    bsdtar -xf gitlens-$VS_GITLENS_VERSION.vsix extension && \
-    rm gitlens-$VS_GITLENS_VERSION.vsix && \
-    mv extension $HOME/.vscode/extensions/eamodio.gitlens-$VS_GITLENS_VERSION && \
-    # Install French Language extension via building and copying https://github.com/microsoft/vscode-loc/tree/release/1.50
-    # https://github.com/Microsoft/vscode-loc/wiki/How-to-create-language-pack-extension#1-build-vsix 
     VS_FRENCH_VERSION="1.50.2" && \
     VS_LOCALE_REPO_VERSION="1.50" && \
     git clone -b release/$VS_LOCALE_REPO_VERSION https://github.com/microsoft/vscode-loc.git &&\
@@ -695,9 +683,9 @@ RUN \
 
 # Small baked-in tool requests
 RUN add-apt-repository ppa:libreoffice/ppa && \
-    /bin/bash $RESOURCES_PATH/tools/emacs.sh && \
     apt-get install eog && \
     apt-get install libreoffice-calc libreoffice-gtk3 && \
+    apt-get install libreoffice-help-fr libreoffice-l10n-fr && \
     clean-layer.sh
 
 # Install Jupyter Tooling Extension
@@ -707,6 +695,9 @@ RUN \
     pip install --no-cache-dir $RESOURCES_PATH/jupyter-extensions/tooling-extension/ && \
     # Cleanup
     clean-layer.sh
+
+#Set up desktop icons and descriptions
+COPY /resources/french/desktop-files /usr/share/applications/
 
 # Desktop icons, firefox default
 RUN cp /usr/share/applications/firefox.desktop $HOME/Desktop/firefox.desktop && \
@@ -719,11 +710,13 @@ RUN cp /usr/share/applications/firefox.desktop $HOME/Desktop/firefox.desktop && 
     echo "[Desktop Entry]\nVersion=1.0\nType=Link\nName=Netdata\nComment=Hardware Monitoring\nCategories=System;Utility;Development;\nIcon=/resources/icons/netdata-icon.png\nURL=http://localhost:8092/tools/netdata" > $HOME/Desktop/netdata.desktop && \
     chown ${NB_USER}:${NB_USER} $HOME/Desktop/netdata.desktop && \
     chmod +x $HOME/Desktop/netdata.desktop && \
-    echo "[Desktop Entry]\nVersion=1.0\nType=Application\nName=LibreOffice Calc\nComment=Perform calculations, analyze information and manage lists in spreadsheets by using Calc.\nExec=libreoffice --calc %U\nIcon=libreoffice-calc\nPath=\nTerminal=false\nStartupNotify=true" > $HOME/Desktop/calc.desktop && \
+    echo "[Desktop Entry]\nVersion=1.0\nType=Application\nName=LibreOffice Calc\nExec=libreoffice --calc %U\nIcon=libreoffice-calc\nPath=\nTerminal=false\nStartupNotify=true" > $HOME/Desktop/calc.desktop && \
     chown ${NB_USER}:${NB_USER} $HOME/Desktop/calc.desktop && \
     chmod +x $HOME/Desktop/calc.desktop && \
     # Remove mail and logout desktop icons
-    rm /usr/share/applications/exo-mail-reader.desktop
+    rm /usr/share/applications/exo-mail-reader.desktop && \
+    #Remove the debian-uxterm.desktop it doesnt do anything different from the regular xterm
+    rm /usr/share/applications/debian-uxterm.desktop
 
 # Hotfix to connect to GUI
 # Note: This still seems to be required before the Workspace overwrite hotfix
@@ -762,6 +755,9 @@ RUN \
     sed -i -e 's/# fr_FR.UTF-8 UTF-8/fr_FR.UTF-8 UTF-8/' /etc/locale.gen && \
     locale-gen && \
     dpkg-reconfigure --frontend=noninteractive locales && \
+    apt-get install language-pack-fr-base && \
+    #Needed for right click functions 
+    apt-get install language-pack-gnome-fr && \
     clean-layer.sh
 
 
@@ -776,6 +772,19 @@ COPY resources/landing_page $RESOURCES_PATH/landing_page/
 
 COPY init.sh /init.sh
 RUN chmod +x /init.sh
+
+#Add French specific features
+#MO files containing translations for applications
+COPY resources/french/mo-file /usr/share/locale/fr/LC_MESSAGES
+#JSON file containing translation for novnc messages and settings
+COPY resources/french/fr.json /resources/novnc/app/locale
+#Copy the French language pack file, must be the 78.6.1esr version 
+RUN wget https://ftp.mozilla.org/pub/firefox/releases/78.6.1esr/linux-x86_64/xpi/fr.xpi -O langpack-fr@firefox.mozilla.org.xpi && \
+    mkdir --parents /usr/lib/firefox/distribution/extensions/ && \
+    mv langpack-fr@firefox.mozilla.org.xpi /usr/lib/firefox/distribution/extensions/
+#Configure and set up Firefox to start up in a specific language (depends on LANG env variable)
+COPY resources/tools/autoconfig.js /usr/lib/firefox/defaults/pref/
+COPY resources/tools/firefox.cfg /usr/lib/firefox/
 
 ### Trivy vulnerability test
 ### RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sh -s -- -b /usr/local/bin
