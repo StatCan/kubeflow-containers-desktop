@@ -4,13 +4,6 @@
 
 set -e
 
-# Set language based on argv. Change later to use env variable
-argvFile=$(</home/jovyan/.config/Code/User/argv.json)
-if [[ $argvFile == *'"locale":"fr"'* ]]; then
-  export LANGUAGE=fr_FR
-  else
-  export LANGUAGE=en_EN
-fi
 
 if [[ ! -z "${JUPYTERHUB_API_TOKEN}" ]]; then
   # launched by JupyterHub, use single-user entrypoint

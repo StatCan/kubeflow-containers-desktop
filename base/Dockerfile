@@ -501,21 +501,6 @@ RUN \
 # Call order: https://unix.stackexchange.com/questions/367600/what-is-the-order-that-linuxs-dynamic-linker-searches-paths-in
 ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:$CONDA_DIR/lib 
 
-## Netdata
-RUN \
-    /bin/bash $RESOURCES_PATH/tools/netdata.sh --install && \
-    # Cleanup
-    clean-layer.sh
-
-# Configure Netdata
-# COPY resources/netdata/ /etc/netdata/
-
-## Filebrowser
-RUN \
-    /bin/bash $RESOURCES_PATH/tools/filebrowser.sh --install && \
-    # Cleanup
-    clean-layer.sh
-
 # Install Firefox
 RUN \
     /bin/bash $RESOURCES_PATH/tools/firefox.sh --install && \
@@ -531,9 +516,6 @@ COPY \
     resources/jupyter/start-notebook.sh \
     resources/jupyter/start-singleuser.sh \
     /usr/local/bin/
-
-### FRENCH LANGUAGE ####
-COPY resources/scripts/languagecheck.js /usr/local/bin/
 
 ### VSCODE ###
 
@@ -632,10 +614,8 @@ RUN \
 
 # Configure Jupyter / JupyterLab
 # Add as jupyter system configuration
-COPY resources/jupyter/nbconfig /etc/jupyter/nbconfig
-COPY resources/jupyter/jupyter_notebook_config.py resources/jupyter/jupyter_notebook_config.json resources/jupyter/nbconfig /etc/jupyter/
+COPY resources/jupyter/jupyter_notebook_config.py /etc/jupyter/
 COPY resources/jupyter/sidebar.jupyterlab-settings $HOME/.jupyter/lab/user-settings/@jupyterlab/application-extension/
-COPY resources/jupyter/plugin.jupyterlab-settings $HOME/.jupyter/lab/user-settings/@jupyterlab/extensionmanager-extension/
 COPY resources/jupyter/ipython_config.py /etc/ipython/ipython_config.py
 
 # Add tensorboard patch - use tensorboard jupyter plugin instead of the actual tensorboard magic
@@ -646,14 +626,7 @@ RUN \
     # Jupyter Branding
     cp -f $RESOURCES_PATH/branding/logo.png $CONDA_PYTHON_DIR"/site-packages/notebook/static/base/images/logo.png" && \
     cp -f $RESOURCES_PATH/branding/favicon.ico $CONDA_PYTHON_DIR"/site-packages/notebook/static/base/images/favicon.ico" && \
-    cp -f $RESOURCES_PATH/branding/favicon.ico $CONDA_PYTHON_DIR"/site-packages/notebook/static/favicon.ico" && \
-    # Fielbrowser Branding
-    mkdir -p $RESOURCES_PATH"/filebrowser/img/icons/" && \
-    cp -f $RESOURCES_PATH/branding/favicon.ico $RESOURCES_PATH"/filebrowser/img/icons/favicon.ico" && \
-    # Todo - use actual png
-    cp -f $RESOURCES_PATH/branding/favicon.ico $RESOURCES_PATH"/filebrowser/img/icons/favicon-32x32.png" && \
-    cp -f $RESOURCES_PATH/branding/favicon.ico $RESOURCES_PATH"/filebrowser/img/icons/favicon-16x16.png" && \
-    cp -f $RESOURCES_PATH/branding/ml-workspace-logo.svg $RESOURCES_PATH"/filebrowser/img/logo.svg"
+    cp -f $RESOURCES_PATH/branding/favicon.ico $CONDA_PYTHON_DIR"/site-packages/notebook/static/favicon.ico"
 
 # Configure Matplotlib
 RUN \
@@ -688,14 +661,6 @@ RUN add-apt-repository ppa:libreoffice/ppa && \
     apt-get install libreoffice-help-fr libreoffice-l10n-fr && \
     clean-layer.sh
 
-# Install Jupyter Tooling Extension
-COPY resources/jupyter/extensions $RESOURCES_PATH/jupyter-extensions
-
-RUN \
-    pip install --no-cache-dir $RESOURCES_PATH/jupyter-extensions/tooling-extension/ && \
-    # Cleanup
-    clean-layer.sh
-
 #Set up desktop icons and descriptions
 COPY /resources/french/desktop-files /usr/share/applications/
 
@@ -707,9 +672,6 @@ RUN cp /usr/share/applications/firefox.desktop $HOME/Desktop/firefox.desktop && 
     cp /usr/share/applications/code.desktop $HOME/Desktop/code.desktop && \
     chown ${NB_USER}:${NB_USER} $HOME/Desktop/code.desktop && \
     chmod +x $HOME/Desktop/code.desktop && \
-    echo "[Desktop Entry]\nVersion=1.0\nType=Link\nName=Netdata\nComment=Hardware Monitoring\nCategories=System;Utility;Development;\nIcon=/resources/icons/netdata-icon.png\nURL=http://localhost:8092/tools/netdata" > $HOME/Desktop/netdata.desktop && \
-    chown ${NB_USER}:${NB_USER} $HOME/Desktop/netdata.desktop && \
-    chmod +x $HOME/Desktop/netdata.desktop && \
     echo "[Desktop Entry]\nVersion=1.0\nType=Application\nName=LibreOffice Calc\nExec=libreoffice --calc %U\nIcon=libreoffice-calc\nPath=\nTerminal=false\nStartupNotify=true" > $HOME/Desktop/calc.desktop && \
     chown ${NB_USER}:${NB_USER} $HOME/Desktop/calc.desktop && \
     chmod +x $HOME/Desktop/calc.desktop && \
@@ -741,11 +703,10 @@ RUN mkdir /var/run/supervisord && \
 
 # Privileged supervisor commands
 ARG START_CRON="/usr/sbin/cron -f -L 15"
-ARG START_NETDATA="/usr/sbin/netdata -D -p 8050"
 ARG START_RSYSLOGD="/usr/sbin/rsyslogd -n"
 
 RUN \
-    echo "${NB_USER} ALL=(ALL) NOPASSWD: ${START_CRON}, ${START_NETDATA}, ${START_RSYSLOGD}" >> /etc/sudoers.d/${NB_USER}
+    echo "${NB_USER} ALL=(ALL) NOPASSWD: ${START_CRON}, ${START_RSYSLOGD}" >> /etc/sudoers.d/${NB_USER}
 
 # Install the French Locale. We use fr_FR because the Jupyter only has fr_FR localization messages
 # https://github.com/jupyter/notebook/tree/master/notebook/i18n/fr_FR/LC_MESSAGES
@@ -768,7 +729,6 @@ RUN cp -r /home/$NB_USER /home_nbuser_default && \
 ### Landing page
 
 COPY resources/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY resources/landing_page $RESOURCES_PATH/landing_page/
 
 COPY init.sh /init.sh
 RUN chmod +x /init.sh
