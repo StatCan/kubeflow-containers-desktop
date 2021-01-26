@@ -58,7 +58,6 @@ elif args.mode == "backup":
                         --include='/.config/Code/***' \
                         --include='/.config/gtk-3.0/' --include='/.config/gtk-3.0/bookmarks' \
                         --include='/.gitconfig' \
-                        --include='/filebrowser.db' \
                         --include='/.local/' --include='/.local/share/' --include='/.local/share/jupyter/' --include='/.local/share/jupyter/kernels/***' \
                         --include='/.jupyter/***'"
     # Do not backup vscode extensions? --include='/.vscode/***' \
