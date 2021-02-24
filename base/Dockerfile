@@ -493,7 +493,7 @@ RUN \
     # ln -s /usr/bin/chromium-browser /usr/bin/google-chrome && \
     # Cleanup
     # Large package: gnome-user-guide 50MB app-install-data 50MB
-    apt-get remove -y app-install-data gnome-user-guide && \ 
+    apt-get remove -y app-install-data gnome-user-guide && \
     clean-layer.sh
 
 # Add the defaults from /lib/x86_64-linux-gnu, otherwise lots of no version errors
@@ -738,8 +738,8 @@ RUN chmod +x /init.sh
 COPY resources/french/mo-file /usr/share/locale/fr/LC_MESSAGES
 #JSON file containing translation for novnc messages and settings
 COPY resources/french/fr.json /resources/novnc/app/locale
-#Copy the French language pack file, must be the 78.6.1esr version 
-RUN wget https://ftp.mozilla.org/pub/firefox/releases/78.6.1esr/linux-x86_64/xpi/fr.xpi -O langpack-fr@firefox.mozilla.org.xpi && \
+#Copy the French language pack file, must be the 86 version
+RUN wget https://addons.mozilla.org/firefox/downloads/file/3731010/francais_language_pack-86.0buildid20210222142601-fx.xpi -O langpack-fr@firefox.mozilla.org.xpi && \
     mkdir --parents /usr/lib/firefox/distribution/extensions/ && \
     mv langpack-fr@firefox.mozilla.org.xpi /usr/lib/firefox/distribution/extensions/
 #Configure and set up Firefox to start up in a specific language (depends on LANG env variable)
