@@ -251,30 +251,46 @@ COPY resources/tools $RESOURCES_PATH/tools
 
 ### RUNTIMES ###
 
-# Install Miniconda: https://repo.continuum.io/miniconda/
-# Also moved DATA SCIENCE BASICS and the Conda Solving Environemnt fix here: 
-# All base conda in one layer brings down image size
+# Install Miniforge
+
 ENV \
     CONDA_DIR=/opt/conda \
-    PYTHON_VERSION="3.7.7" \
-    CONDA_PYTHON_DIR=/opt/conda/lib/python3.7 \
-    CONDA_VERSION="4.7.12"
-ARG SHA256=a23fcffe97690d3bbcd34cda798c3a3318e0f35d863c5d4aca3fc983fe8450b7
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O ${HOME}/miniconda.sh && \
-    echo "${SHA256} ${HOME}/miniconda.sh" | sha256sum -c - && \
-    /bin/bash ~/miniconda.sh -b -p $CONDA_DIR && \
+    PYTHON_VERSION="3.8.5" \
+    CONDA_PYTHON_DIR=/opt/conda/lib/python3.8 \
+    CONDA_VERSION="4.9.0"
+
+# Miniforge installer patch version
+ARG miniforge_patch_number="4"
+# Miniforge installer architecture
+ARG miniforge_arch="x86_64"
+# Python implementation to use 
+# can be either Miniforge3 to use Python or Miniforge-pypy3 to use PyPy
+ARG miniforge_python="Miniforge3"
+
+# Miniforge archive to install
+ARG miniforge_version="${CONDA_VERSION}-${miniforge_patch_number}"
+# Miniforge installer
+ARG miniforge_installer="${miniforge_python}-${miniforge_version}-Linux-${miniforge_arch}.sh"
+# Miniforge checksum
+ARG miniforge_checksum="dae28a05f0fcfed0b47c66468e8434ab42cb1ff90de96540a506949cdecd2b5a"
+
+RUN wget --quiet "https://github.com/conda-forge/miniforge/releases/download/${miniforge_version}/${miniforge_installer}" && \
+    echo "${miniforge_checksum} *${miniforge_installer}" | sha256sum --check && \
+    /bin/bash "${miniforge_installer}" -f -b -p $CONDA_DIR && \
     export PATH=$CONDA_DIR/bin:$PATH && \
-    rm ~/miniconda.sh && \
+    rm "${miniforge_installer}" && \
     # Update conda
     $CONDA_DIR/bin/conda update -y -n base -c defaults conda && \
     $CONDA_DIR/bin/conda update -y setuptools && \
     $CONDA_DIR/bin/conda install -y conda-build && \
     # Add conda forge - Append so that conda forge has lower priority than the main channel
-    $CONDA_DIR/bin/conda config --system --append channels conda-forge && \
+    $CONDA_DIR/bin/conda config --add channels conda-forge && \
+    #$CONDA_DIR/bin/conda config --system --append channels conda-forge && \
+    $CONDA_DIR/bin/conda config --set channel_priority strict && \
     $CONDA_DIR/bin/conda config --system --set auto_update_conda false && \
     $CONDA_DIR/bin/conda config --system --set show_channel_urls true && \
     ## Conda Solving Environment Fix: Turn off channel priority
-    conda config --set channel_priority false && \
+    ##conda config --set channel_priority true && \
     # Update selected packages - install python 3.7.x
     $CONDA_DIR/bin/conda install -y --update-all python=$PYTHON_VERSION && \
     # Link Conda
