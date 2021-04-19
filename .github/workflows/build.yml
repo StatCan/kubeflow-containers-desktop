@@ -14,7 +14,7 @@ name: build
 on:
   push:
     branches:
-      - Switch-to-conda-forge
+      - master
 
 # Environment variables available to all jobs and steps in this workflow
 env:

@@ -48,8 +48,8 @@ RUN \
 COPY resources/scripts/clean-layer.sh  /usr/bin/clean-layer.sh
 COPY resources/scripts/fix-permissions.sh  /usr/bin/fix-permissions.sh
 
- # Make clean-layer and fix-permissions executable
- RUN \
+# Make clean-layer and fix-permissions executable
+RUN \
     chmod u+x /usr/bin/clean-layer.sh && \
     chmod u+x /usr/bin/fix-permissions.sh
 
@@ -75,108 +75,108 @@ RUN \
     apt-get install -y sudo apt-utils && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
-        # This is necessary for apt to access HTTPS sources: 
-        apt-transport-https \
-        gnupg-agent \
-        gpg-agent \
-        gnupg2 \
-        ca-certificates \
-        build-essential \
-        pkg-config \
-        software-properties-common \
-        lsof \
-        net-tools \
-        libcurl4 \
-        curl \
-        wget \
-        cron \
-        openssl \
-        iproute2 \
-        psmisc \
-        tmux \
-        dpkg-sig \
-        uuid-dev \
-        csh \
-        xclip \
-        clinfo \
-        libgdbm-dev \
-        libncurses5-dev \
-        gawk \
-        # Simplified Wrapper and Interface Generator (5.8MB) - required by lots of py-libs
-        swig \
-        # Graphviz (graph visualization software) (4MB)
-        graphviz libgraphviz-dev \
-        # Terminal multiplexer
-        screen \
-        # Editor
-        nano \
-        # Find files
-        locate \
-        # Dev Tools
-        # sqlite3 \
-        # XML Utils
-        xmlstarlet \
-        #  R*-tree implementation - Required for earthpy, geoviews (3MB)
-        libspatialindex-dev \
-        # Search text and binary files
-        yara \
-        # Minimalistic C client for Redis
-        libhiredis-dev \
-        libleptonica-dev \
-        # GEOS library (3MB)
-        libgeos-dev \
-        # style sheet preprocessor
-        less \
-        # Print dir tree
-        tree \
-        # Bash autocompletion functionality
-        bash-completion \
-        # ping support
-        iputils-ping \
-        # Json Processor
-        jq \
-        rsync \
-        # VCS:
-        git \
-        subversion \
-        jed \
-        # odbc drivers
-        unixodbc unixodbc-dev \
-        # Image support
-        libtiff-dev \
-        libjpeg-dev \
-        libpng-dev \
-        # TODO: no 18.04 installation candidate: libjasper-dev \
-        libglib2.0-0 \
-        libxext6 \
-        libsm6 \
-        libxext-dev \
-        libxrender1 \
-        libzmq3-dev \
-        # protobuffer support
-        protobuf-compiler \
-        libprotobuf-dev \
-        libprotoc-dev \
-        autoconf \
-        automake \
-        libtool \
-        cmake  \
-        fonts-liberation \
-        google-perftools \
-        # Compression Libs
-        # also install rar/unrar? but both are propriatory or unar (40MB)
-        zip \
-        gzip \
-        unzip \
-        bzip2 \
-        lzop \
-        bsdtar \
-        zlibc \
-        # unpack (almost) everything with one command
-        unp \
-        libbz2-dev \
-        liblzma-dev \
-        zlib1g-dev && \
+    # This is necessary for apt to access HTTPS sources: 
+    apt-transport-https \
+    gnupg-agent \
+    gpg-agent \
+    gnupg2 \
+    ca-certificates \
+    build-essential \
+    pkg-config \
+    software-properties-common \
+    lsof \
+    net-tools \
+    libcurl4 \
+    curl \
+    wget \
+    cron \
+    openssl \
+    iproute2 \
+    psmisc \
+    tmux \
+    dpkg-sig \
+    uuid-dev \
+    csh \
+    xclip \
+    clinfo \
+    libgdbm-dev \
+    libncurses5-dev \
+    gawk \
+    # Simplified Wrapper and Interface Generator (5.8MB) - required by lots of py-libs
+    swig \
+    # Graphviz (graph visualization software) (4MB)
+    graphviz libgraphviz-dev \
+    # Terminal multiplexer
+    screen \
+    # Editor
+    nano \
+    # Find files
+    locate \
+    # Dev Tools
+    # sqlite3 \
+    # XML Utils
+    xmlstarlet \
+    #  R*-tree implementation - Required for earthpy, geoviews (3MB)
+    libspatialindex-dev \
+    # Search text and binary files
+    yara \
+    # Minimalistic C client for Redis
+    libhiredis-dev \
+    libleptonica-dev \
+    # GEOS library (3MB)
+    libgeos-dev \
+    # style sheet preprocessor
+    less \
+    # Print dir tree
+    tree \
+    # Bash autocompletion functionality
+    bash-completion \
+    # ping support
+    iputils-ping \
+    # Json Processor
+    jq \
+    rsync \
+    # VCS:
+    git \
+    subversion \
+    jed \
+    # odbc drivers
+    unixodbc unixodbc-dev \
+    # Image support
+    libtiff-dev \
+    libjpeg-dev \
+    libpng-dev \
+    # TODO: no 18.04 installation candidate: libjasper-dev \
+    libglib2.0-0 \
+    libxext6 \
+    libsm6 \
+    libxext-dev \
+    libxrender1 \
+    libzmq3-dev \
+    # protobuffer support
+    protobuf-compiler \
+    libprotobuf-dev \
+    libprotoc-dev \
+    autoconf \
+    automake \
+    libtool \
+    cmake  \
+    fonts-liberation \
+    google-perftools \
+    # Compression Libs
+    # also install rar/unrar? but both are propriatory or unar (40MB)
+    zip \
+    gzip \
+    unzip \
+    bzip2 \
+    lzop \
+    bsdtar \
+    zlibc \
+    # unpack (almost) everything with one command
+    unp \
+    libbz2-dev \
+    liblzma-dev \
+    zlib1g-dev && \
     # configure dynamic linker run-time bindings
     ldconfig && \
     # Fix permissions
@@ -194,13 +194,13 @@ RUN wget --quiet https://github.com/krallin/tini/releases/download/v0.18.0/tini 
 RUN \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        openssh-client \
-        openssh-server \
-        # SSLH for SSH + HTTP(s) Multiplexing
-        sslh \
-        # SSH Tooling
-        autossh \
-        mussh && \
+    openssh-client \
+    openssh-server \
+    # SSLH for SSH + HTTP(s) Multiplexing
+    sslh \
+    # SSH Tooling
+    autossh \
+    mussh && \
     chmod go-w $HOME && \
     mkdir -p $HOME/.ssh/ && \
     # create empty config file if not exists
@@ -285,13 +285,11 @@ RUN wget --quiet "https://github.com/conda-forge/miniforge/releases/download/${m
     $CONDA_DIR/bin/conda install -y conda-build && \
     # Add conda forge - Append so that conda forge has lower priority than the main channel
     $CONDA_DIR/bin/conda config --add channels conda-forge && \
-    #$CONDA_DIR/bin/conda config --system --append channels conda-forge && \
     $CONDA_DIR/bin/conda config --set channel_priority strict && \
     $CONDA_DIR/bin/conda config --system --set auto_update_conda false && \
     $CONDA_DIR/bin/conda config --system --set show_channel_urls true && \
     ## Conda Solving Environment Fix: Turn off channel priority
-    ##conda config --set channel_priority true && \
-    # Update selected packages - install python 3.7.x
+    # Update selected packages - install python 3.8.x
     $CONDA_DIR/bin/conda install -y --update-all python=$PYTHON_VERSION && \
     # Link Conda
     ln -s $CONDA_DIR/bin/python /usr/local/bin/python && \
@@ -308,42 +306,42 @@ RUN wget --quiet "https://github.com/conda-forge/miniforge/releases/download/${m
     pip install --upgrade pip && \
     conda install -y --update-all nomkl && \
     conda install -y --update-all \
-            'python='$PYTHON_VERSION \
-            tqdm \
-            pyzmq \
-            cython \
-            graphviz \
-            numpy \
-            matplotlib \
-            scipy \
-            requests \
-            urllib3 \
-            pandas \
-            six \
-            future \
-            protobuf \
-            zlib \
-            boost \
-            psutil \
-            PyYAML \
-            python-crontab \
-            ipykernel \
-            cmake \
-            joblib \
-            Pillow \
-            ipython \
-            notebook \
-            # Selected by library evaluation
-            networkx \
-            click \
-            docutils \
-            imageio \
-            tabulate \
-            flask \
-            dill \
-            regex \
-            toolz \
-            jmespath && \
+    'python='$PYTHON_VERSION \
+    tqdm \
+    pyzmq \
+    cython \
+    graphviz \
+    numpy \
+    matplotlib \
+    scipy \
+    requests \
+    urllib3 \
+    pandas \
+    six \
+    future \
+    protobuf \
+    zlib \
+    boost \
+    psutil \
+    PyYAML \
+    python-crontab \
+    ipykernel \
+    cmake \
+    joblib \
+    Pillow \
+    ipython \
+    notebook \
+    # Selected by library evaluation
+    networkx \
+    click \
+    docutils \
+    imageio \
+    tabulate \
+    flask \
+    dill \
+    regex \
+    toolz \
+    jmespath && \
     # OpenMPI support
     apt-get install -y --no-install-recommends libopenmpi-dev openmpi-bin && \
     # Install numba
