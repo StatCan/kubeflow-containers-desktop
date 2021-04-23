@@ -53,6 +53,8 @@ jobs:
 
     # Scan image for vulnerabilities
     - uses: Azure/container-scan@v0
+      env:
+        TRIVY_TIMEOUT: 10m0s #trivy default is 2
       with:
         image-name: ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-base:${{ github.sha }}
         severity-threshold: CRITICAL
@@ -61,7 +63,7 @@ jobs:
     # Container build and push to a Azure Container registry (ACR)
     - run: |
         # Remote Desktop R
-        docker build -f r/Dockerfile -t ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-r:${{ github.sha }} r
+        docker build -f r/Dockerfile --build-arg SHA=${{ github.sha }} -t ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-r:${{ github.sha }} r
         docker push ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-r:${{ github.sha }}
         docker tag ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-r:${{ github.sha }} ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-r:${GITHUB_REF#refs/*/}
         docker push ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-r:${GITHUB_REF#refs/*/}
@@ -69,6 +71,8 @@ jobs:
 
     # Scan image for vulnerabilities
     - uses: Azure/container-scan@v0
+      env:
+        TRIVY_TIMEOUT: 10m0s #Trivy default is 2
       with:
         image-name: ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-r:${{ github.sha }}
         severity-threshold: CRITICAL
@@ -77,7 +81,7 @@ jobs:
     # Container build and push to a Azure Container registry (ACR)
     - run: |
         # Remote Desktop Geomatics
-        docker build -f geomatics/Dockerfile -t ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-geomatics:${{ github.sha }} geomatics
+        docker build -f geomatics/Dockerfile --build-arg SHA=${{ github.sha }} -t ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-geomatics:${{ github.sha }} geomatics
         docker push ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-geomatics:${{ github.sha }}
         docker tag ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-geomatics:${{ github.sha }} ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-geomatics:${GITHUB_REF#refs/*/}
         docker push ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-geomatics:${GITHUB_REF#refs/*/}
@@ -85,6 +89,8 @@ jobs:
 
     # Scan image for vulnerabilities
     - uses: Azure/container-scan@v0
+      env:
+        TRIVY_TIMEOUT: 10m0s #Trivy default is 2
       with:
         image-name: ${{ env.REGISTRY_NAME }}.azurecr.io/remote-desktop-geomatics:${{ github.sha }}
         severity-threshold: CRITICAL

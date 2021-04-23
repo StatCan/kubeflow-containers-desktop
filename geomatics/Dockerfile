@@ -1,4 +1,5 @@
-FROM k8scc01covidacr.azurecr.io/remote-desktop-r:master
+ARG SHA=master
+FROM k8scc01covidacr.azurecr.io/remote-desktop-r:${SHA}
 
 USER root
 
