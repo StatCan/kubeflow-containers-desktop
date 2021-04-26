@@ -283,9 +283,6 @@ RUN wget --quiet "https://github.com/conda-forge/miniforge/releases/download/${m
     $CONDA_DIR/bin/conda update -y -n base -c defaults conda && \
     $CONDA_DIR/bin/conda update -y setuptools && \
     $CONDA_DIR/bin/conda install -y conda-build && \
-    # Add conda forge - Append so that conda forge has lower priority than the main channel
-    $CONDA_DIR/bin/conda config --add channels conda-forge && \
-    $CONDA_DIR/bin/conda config --set channel_priority strict && \
     $CONDA_DIR/bin/conda config --system --set auto_update_conda false && \
     $CONDA_DIR/bin/conda config --system --set show_channel_urls true && \
     ## Conda Solving Environment Fix: Turn off channel priority
